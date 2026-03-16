@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 11
+names: ['bb', 'blue-gate-sign', 'buoy', 'coral', 'coral-box-side', 'coral-box-top', 'dropper-box-side', 'dropper-box-top', 'path', 'red octagon', 'red-gate-sign']
+
+roboflow:
+  workspace: pmc-72jsi
+  project: robosub-2024-wmxnp-s5q59
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/pmc-72jsi/robosub-2024-wmxnp-s5q59/dataset/1
