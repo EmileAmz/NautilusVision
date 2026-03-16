@@ -1,0 +1,1 @@
+These two folders contain two datasets form other teams in previous years. They were used to train  yolov8 model to see if it could hold its up when testing on another dataset. The Data folder contains the initial dataset that was used for training, and the DataTest contains the dataset used to test the performances in different environments.
