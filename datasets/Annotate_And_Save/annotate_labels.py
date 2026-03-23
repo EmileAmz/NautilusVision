@@ -2,13 +2,17 @@ import cv2
 import os
 import glob
 import yaml
+from pathlib import Path
 
 # ---------------- CONFIG ----------------
-IMAGE_DIR = "Data/train/images"
-LABEL_DIR = "Data/train/labels"
-IMAGE_EXT = ".jpg"
-DATA_YAML = "Data/data.yaml"
+SCRIPT_DIR = Path(__file__).parent.resolve()
+REPO_ROOT = SCRIPT_DIR.parent
+IMAGE_DIR = REPO_ROOT / "Tests_march_18/dataset/rgb"
+LABEL_DIR = REPO_ROOT / "Tests_march_18/dataset/labels"
+IMAGE_EXT = ".png"
+DATA_YAML = REPO_ROOT / "Tests_march_18/dataset/data.yaml"
 START_INDEX = 250
+
 # ----------------------------------------
 
 labels = []
@@ -42,13 +46,17 @@ CLASSES = load_classes_from_yaml(DATA_YAML)
 
 # ---------- LABEL IO ----------
 def load_labels(label_path):
+
+    if not os.path.exists(label_path):
+        os.makedirs(os.path.dirname(label_path), exist_ok=True)
+        open(label_path, "w").close()  # create empty label file
+        return []
     data = []
-    if os.path.exists(label_path):
-        with open(label_path, "r") as f:
-            for line in f:
-                p = line.strip().split()
-                if len(p) == 5:
-                    data.append(list(map(float, p)))
+    with open(label_path, "r") as f:
+        for line in f:
+            p = line.strip().split()
+            if len(p) == 5:
+                data.append(list(map(float, p)))
     return data
 
 
@@ -162,27 +170,32 @@ def mouse_cb(event, x, y, flags, param):
                 labels.append([current_class, xc, yc, w, h])
 
 # ---------- MAIN ----------
-image_files = sorted(glob.glob(os.path.join(IMAGE_DIR, "*" + IMAGE_EXT)))
+# ---------- MAIN ----------
+image_files = sorted(IMAGE_DIR.glob(f"*{IMAGE_EXT}"))  # Path.glob returns Path objects
 
 # ✅ FULLSCREEN WINDOW
 cv2.namedWindow("Label Editor", cv2.WINDOW_NORMAL)
 cv2.setWindowProperty("Label Editor", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-
 cv2.setMouseCallback("Label Editor", mouse_cb)
 
 idx = START_INDEX if START_INDEX < len(image_files) else 0
 
 while idx < len(image_files):
-    img_path = image_files[idx]
-    base = os.path.splitext(os.path.basename(img_path))[0]
-    label_path = os.path.join(LABEL_DIR, base + ".txt")
+    img_path = image_files[idx]          # Path object
+    base = img_path.stem                 # gets filename without extension
+    label_path = LABEL_DIR / f"{base}.txt"
 
-    img = cv2.imread(img_path)
+    img = cv2.imread(str(img_path))       # cv2 needs string path
+    if img is None:
+        print(f"Warning: Could not read {img_path}")
+        idx += 1
+        continue
+
     img_h, img_w = img.shape[:2]
     zoom_cx, zoom_cy = img_w // 2, img_h // 2
     zoom = 1.0
 
-    labels = load_labels(label_path)
+    labels = load_labels(str(label_path))   # load_labels expects string path
 
     while True:
         disp = get_zoom_view(img).copy()
@@ -205,9 +218,9 @@ while idx < len(image_files):
             cv2.destroyAllWindows()
             exit()
         elif key == ord('s'):
-            save_labels(label_path)
+            save_labels(str(label_path))
         elif key == ord('n'):
-            save_labels(label_path)
+            save_labels(str(label_path))
             idx += 1
             break
         elif key == ord('c'):
