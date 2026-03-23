@@ -11,7 +11,7 @@ IMAGE_DIR = REPO_ROOT / "Tests_march_18/dataset/rgb"
 LABEL_DIR = REPO_ROOT / "Tests_march_18/dataset/labels"
 IMAGE_EXT = ".png"
 DATA_YAML = REPO_ROOT / "Tests_march_18/dataset/data.yaml"
-START_INDEX = 250
+START_INDEX = 230
 
 # ----------------------------------------
 
