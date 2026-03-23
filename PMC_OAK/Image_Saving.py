@@ -21,7 +21,7 @@ DEPTH_FOLDER = dataset_folder / "depth"
 RGB_FOLDER.mkdir(parents=True, exist_ok=True)
 DEPTH_FOLDER.mkdir(parents=True, exist_ok=True)
 
-FPS = 10
+FPS = 5
 PERIODIC_INTERVAL = 1.0        # seconds
 BURST_COUNT = 5
 BURST_INTERVAL = 0.5           # seconds
