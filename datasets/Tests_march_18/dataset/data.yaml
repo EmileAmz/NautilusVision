@@ -4,7 +4,7 @@
 
 nc: 8
 names: ['gate', 'gate_leg_l', 'gate_leg_r', 'gate_leg_center', 'blood', 'fire', 'compass_hammer', 'sos_safety']
-#
+
 #roboflow:
 #  workspace: pmc-72jsi
 #  project: rsla_vision-godu5
