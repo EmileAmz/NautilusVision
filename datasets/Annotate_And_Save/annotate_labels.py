@@ -8,6 +8,7 @@ IMAGE_DIR = "Data/train/images"
 LABEL_DIR = "Data/train/labels"
 IMAGE_EXT = ".jpg"
 DATA_YAML = "Data/data.yaml"
+START_INDEX = 250
 # ----------------------------------------
 
 labels = []
@@ -169,7 +170,8 @@ cv2.setWindowProperty("Label Editor", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSC
 
 cv2.setMouseCallback("Label Editor", mouse_cb)
 
-idx = 0
+idx = START_INDEX if START_INDEX < len(image_files) else 0
+
 while idx < len(image_files):
     img_path = image_files[idx]
     base = os.path.splitext(os.path.basename(img_path))[0]
