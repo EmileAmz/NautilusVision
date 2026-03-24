@@ -1,6 +1,11 @@
 import cv2
 import depthai as dai
 from pathlib import Path
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
+from ultralytics import YOLO
+
 
 # ---------------- CONFIG ----------------
 USE_CAMERA = False  # True = camera, False = folder
@@ -42,7 +47,7 @@ if USE_CAMERA:
     rgbQueue = rgbOut.createOutputQueue(maxSize=4)
     dispQueue = stereo.disparity.createOutputQueue()
 
-    # --------------Example usage--------------
+# --------------Example usage--------------
     with pipeline:
         pipeline.start()
 
