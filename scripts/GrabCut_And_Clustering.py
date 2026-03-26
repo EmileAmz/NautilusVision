@@ -176,29 +176,29 @@ if __name__ == '__main__':
 
     fx, fy, cx, cy = 870, 870, 640, 360
 
-    rgbPath = r"C:\Users\eaime\OneDrive - USherbrooke\S7GRO\NautilusVision\datasets\Tests_march_18\dataset\rgb\1773859763.894.png"
-    depthPath = r"C:\Users\eaime\OneDrive - USherbrooke\S7GRO\NautilusVision\datasets\Tests_march_18\dataset\depth\1773859763.894.png"
+    rgbPath = r"C:\Users\eaime\OneDrive - USherbrooke\S7GRO\NautilusVision\datasets\Test_Piscine_a_annoter\Tests_march_18\rgb\1773859763.894.png"
+    depthPath = r"C:\Users\eaime\OneDrive - USherbrooke\S7GRO\NautilusVision\datasets\Test_Piscine_a_annoter\Tests_march_18\depth\1773859763.894.png"
 
     frame = cv2.imread(rgbPath)
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
+    b, g, r = cv2.split(frame)
+
+    b = cv2.normalize(b, None, 0, 255, cv2.NORM_MINMAX)
+    g = cv2.normalize(g, None, 0, 255, cv2.NORM_MINMAX)
+    r = cv2.normalize(r, None, 0, 255, cv2.NORM_MINMAX)
+
+    enhanced = cv2.merge([b, g, r])
+    enhanced = enhanced.astype(np.uint8)
+
     depth_frame = cv2.imread(depthPath, cv2.IMREAD_UNCHANGED).astype(np.float32) / 1000.0
-
-    depth_rgb = visualize_depth_clipped(depth_frame, min_depth=0.2, max_depth=6.0)
-
-    plt.figure(figsize=(10, 6))
-    plt.imshow(depth_rgb)
-    plt.title("Depth Map (Normalized, RGB)")
-    plt.show()
-
 
     print("RGB shape:", frame.shape)
     print("Depth shape:", depth_frame.shape)
-    print("Depth RGB shape", depth_rgb.shape)
 
     # GrabCut
     distance, h_angle, v_angle, mask_fg = get_object_pose_grabcut(
-        frame, depth_frame, bbox, fx, fy, cx, cy
+        enhanced, depth_frame, bbox, fx, fy, cx, cy
     )
 
     print("\nGrabCut distance (m):", distance)
