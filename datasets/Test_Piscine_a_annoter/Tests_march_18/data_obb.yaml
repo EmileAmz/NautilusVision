@@ -2,8 +2,8 @@
 #val: ../valid/images
 #test: ../test/images
 
-nc: 8
-names: ['gate', 'gate_leg_l', 'gate_leg_r', 'gate_leg_center', 'blood', 'fire', 'compass_hammer', 'sos_safety']
+nc: 6
+names: ['gate_leg_long', 'gate_leg_center', 'blood', 'fire', 'compass_hammer', 'sos_safety']
 
 #roboflow:
 #  workspace: pmc-72jsi
