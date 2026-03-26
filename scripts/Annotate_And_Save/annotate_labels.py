@@ -12,7 +12,7 @@ LABEL_DIR = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/labels"
 DEPTH_DIR = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/depth"
 IMAGE_EXT = ".png"
 DATA_YAML = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/data.yaml"
-START_INDEX = 250
+START_INDEX = 0
 ANNOTATION_MODE = "bbox"  # "bbox" or "obb"
 
 # ----------------------------------------
@@ -98,6 +98,7 @@ def draw_crosshair(img, x, y):
 def draw_labels(img):
     for l in labels:
         c = int(l[0])
+        name = CLASSES.get(c, str(c))
 
         if ANNOTATION_MODE == "bbox":
             _, xc, yc, w, h = l
@@ -114,6 +115,8 @@ def draw_labels(img):
 
             cv2.rectangle(img, (x1, y1), (x2, y2), (0, 0, 255), 2)
 
+            text_pos = (x1, y1 - 5)
+
         else:  # OBB
             pts = []
             for i in range(4):
@@ -128,9 +131,13 @@ def draw_labels(img):
             pts = np.array(pts, dtype=np.int32)
             cv2.polylines(img, [pts], True, (0, 0, 255), 2)
 
-        name = CLASSES.get(c, str(c))
-        cv2.putText(img, name, (pts[0][0], pts[0][1] - 5),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
+            text_pos = (pts[0][0], pts[0][1] - 5)
+
+        # ✅ Draw label text safely
+        cv2.putText(
+            img, name, text_pos,
+            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1
+        )
 
 # ---------- ZOOM VIEW ----------
 def get_zoom_view(img):
