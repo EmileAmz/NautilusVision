@@ -6,6 +6,7 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from ultralytics import YOLO
+from scripts.Point_milieu import *
 
 
 # ---------------- CONFIG ----------------
@@ -20,7 +21,8 @@ PAUSE_KEY = ord('p')
 ESC_KEY = 27
 PREDICT_MODE = False
 MODEL_PATH = SCRIPT_DIR / "datasets/Tests_Datasets_Roboflow/Data_1/runs/detect/train3/weights/best.pt"
-MODEL_PATH_IMG = SCRIPT_DIR / "datasets/Tests_Datasets_Roboflow/Data_1/valid/images"
+#MODEL_PATH_IMG = SCRIPT_DIR / "datasets/Tests_Datasets_Roboflow/Data_1/valid/images"
+MODEL_PATH_IMG = SCRIPT_DIR / "datasets/Test_Piscine_a_annoter/Tests_march_18/rgb"
 frames = []
 
 
@@ -75,7 +77,7 @@ elif PREDICT_MODE:
     results = model.predict(
         source=str(MODEL_PATH_IMG),
         save=True,
-        conf=0.25
+        conf=0.10
     )
 
 else:
@@ -99,6 +101,7 @@ else:
 
 # ---------------CALL FUNCTION--------------
 
+find_depth(results, model)
 
 
 cv2.destroyAllWindows()
