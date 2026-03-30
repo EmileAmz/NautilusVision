@@ -9,7 +9,7 @@ from ultralytics import YOLO
 
 
 # ---------------- CONFIG ----------------
-USE_CAMERA = False  # True = camera, False = folder
+USE_CAMERA = True  # True = camera, False = folder
 SCRIPT_DIR = Path(__file__).parent.resolve()
 IMAGE_DIR = SCRIPT_DIR / "datasets/Test_Piscine_a_annoter/Tests_march_18/rgb"
 LABEL_DIR = SCRIPT_DIR / "datasets/Test_Piscine_a_annoter/Tests_march_18/labels"
@@ -18,7 +18,7 @@ NUM_IMAGES = 10
 MAX_FRAMES = 100
 PAUSE_KEY = ord('p')
 ESC_KEY = 27
-PREDICT_MODE = True
+PREDICT_MODE = False
 MODEL_PATH = SCRIPT_DIR / "datasets/Tests_Datasets_Roboflow/Data_1/runs/detect/train3/weights/best.pt"
 MODEL_PATH_IMG = SCRIPT_DIR / "datasets/Tests_Datasets_Roboflow/Data_1/valid/images"
 frames = []
@@ -37,8 +37,9 @@ if USE_CAMERA:
     rgbOut = rgb.requestOutput(
         size=(1280, 720),
         fps=15,
-        type=dai.ImgFrame.Type.NV12,
+        type=dai.ImgFrame.Type.RGB888i,
     )
+
     monoLeftOut = monoLeft.requestFullResolutionOutput()
     monoRightOut = monoRight.requestFullResolutionOutput()
     monoLeftOut.link(stereo.left)
@@ -59,6 +60,7 @@ if USE_CAMERA:
 
         while pipeline.isRunning():
             rgb = rgbQueue.get().getFrame()
+            rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
             cv2.imshow("rgb", rgb)
             key = cv2.waitKey(1)
             if key == PAUSE_KEY:
