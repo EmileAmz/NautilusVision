@@ -68,7 +68,7 @@ depthQueue = stereo.disparity.createOutputQueue(maxSize=4)
 with pipeline:
     pipeline.start()
     while pipeline.isRunning():
-        mode = 5
+        mode = 2
         last_capture_time = 0
         last_depth_mean = None
 

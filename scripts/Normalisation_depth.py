@@ -19,7 +19,7 @@ def filter_depth(depth_path, kernel_size):
 # ---------------- CONFIG ----------------
 #depth_path = Path(r"C:\Users\Xavier Lefebvre\Documents\GitHub\NautilusVision\datasets\Test_Piscine_a_annoter\Tests_march_18\depth\1773859763.894.png")
 
-    FILTER_MODE = "vertical"
+    FILTER_MODE = "none"
     # options: "none", "vertical", "horizontal", "2d"
 
     KERNEL_SIZE = kernel_size
@@ -64,8 +64,8 @@ def filter_depth(depth_path, kernel_size):
 if __name__ == "__main__":
     # ---------------- NORMALISATION VISUELLE ----------------
 
-    depth_path = Path(r"C:\Users\Xavier Lefebvre\Documents\GitHub\NautilusVision\datasets\Test_Piscine_a_annoter\Tests_march_18\depth\1773859763.894.png")
-    depth_filtered = filter_depth(depth_path, 8)
+    depth_path = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\depth\1774885190.749.png")
+    depth_filtered = filter_depth(depth_path, 1)
     valid_mask = depth_filtered > 0
 
     if not np.any(valid_mask):
@@ -73,10 +73,24 @@ if __name__ == "__main__":
 
     valid_values = depth_filtered[valid_mask]
 
-    vmin = np.percentile(valid_values, 2)
-    vmax = np.percentile(valid_values, 98)
+    #vmin = np.percentile(valid_values, 2)
+    #vmax = np.percentile(valid_values, 98)
 
     # ---------------- PLOT ----------------
+
+    plt.figure(figsize=(10, 6))
+
+    im = plt.imshow(depth_filtered, cmap="plasma")
+    cbar = plt.colorbar(im)
+    cbar.set_label("Profondeur (RAW)")
+
+    plt.title("Depth RAW")
+    plt.axis("off")
+
+    plt.tight_layout()
+    plt.show()
+
+    """
     plt.figure(figsize=(10, 6))
 
     im = plt.imshow(depth_filtered, cmap="plasma", vmin=vmin, vmax=vmax)
@@ -88,4 +102,5 @@ if __name__ == "__main__":
 
     plt.tight_layout()
     plt.show()
+    """
 

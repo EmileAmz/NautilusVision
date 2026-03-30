@@ -69,10 +69,10 @@ def find_angle(x_center, y_center, depth_mean):
     X = 0
 
     #À trouver
-    fx = 494
-    fy = 499
-    cx = 321
-    cy = 218
+    fx = 1774
+    fy = 1774
+    cx = 2028
+    cy = 1520
 
     X = (x_center - cx) * depth_mean / fx
     yaw = np.arctan2(X, depth_mean)
