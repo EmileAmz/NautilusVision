@@ -30,10 +30,10 @@ def filter_depth(depth_path, kernel_size):
     if depth is None:
         raise ValueError("Image non chargée")
 
+    depth = np.squeeze(depth)
+
     if len(depth.shape) != 2:
         raise ValueError(f"Image non 2D: {depth.shape}")
-
-    depth = depth.astype(np.float32)
 
     print("min raw:", np.min(depth))
     print("max raw:", np.max(depth))

@@ -1,10 +1,15 @@
 import numpy as np
 from pathlib import Path
 import cv2
-from Normalisation_depth import filter_depth
+from scripts.Normalisation_depth import filter_depth
+
+
+
+
 
 def find_depth(results_model, model, kernel_size, half):
     for r in results_model:
+        angle = 0
         img = r.orig_img  # image numpy, généralement en BGR
         h, w = img.shape[:2]
         print(f"\nImage : {r.path}")
@@ -21,8 +26,8 @@ def find_depth(results_model, model, kernel_size, half):
         img_path = IMAGE_DIR / filename
 
         # Lire l'image
-        img_profondeur = filter_depth(img_path, kernel_size)
-        #img_profondeur = cv2.imread(str(img_path))
+        #img_profondeur = filter_depth(img_path, kernel_size)
+        img_profondeur = cv2.imread(str(img_path))
 
         for i, box in enumerate(r.boxes):
             x_center, y_center, bw, bh = box.xywh[0]
@@ -50,8 +55,27 @@ def find_depth(results_model, model, kernel_size, half):
             conf = box.conf[0].item()
             cls = int(box.cls[0].item())
 
+            angle = find_angle(x1, y1, depth_mean)
+
             print(
                 f"Box {i} | classe={model.names[cls]} | conf={conf:.2f} | "
-                f"centre=({x_center},{y_center}) | profondeur={depth_mean:.2f}"
+                f"centre=({x_center},{y_center}) | profondeur={depth_mean:.2f} | angle={angle:.2f}"
             )
     return
+
+def find_angle(x_center, y_center, depth_mean):
+
+    yaw = 0
+    X = 0
+
+    #À trouver
+    fx = 494
+    fy = 499
+    cx = 321
+    cy = 218
+
+    X = (x_center - cx) * depth_mean / fx
+    yaw = np.arctan2(X, depth_mean)
+    yaw_deg = np.degrees(yaw)
+
+    return yaw_deg
