@@ -1,20 +1,21 @@
 from ultralytics import YOLO
 from pathlib import Path
 
-SCRIPT_DIR = Path(__file__).parent.resolve()
-WEIGHTS_DIR = r"C:\Users\eaime\OneDrive - USherbrooke\S7GRO\NautilusVision\datasets\Tests_Datasets_Roboflow\Data_1\runs\detect\train2\weights\best.pt"
-IMAGE_DIR = r"C:\Users\eaime\OneDrive - USherbrooke\S7GRO\NautilusVision\datasets\Test_Piscine_a_annoter\Tests_march_18\rgb"
+SCRIPT_DIR = Path(__file__).parent.parent.resolve()
+IMAGE_DIR = SCRIPT_DIR / "datasets/Test_Piscine_split/Tests_march_18_bbox/images"
+LABEL_DIR = SCRIPT_DIR / "datasets/Test_Piscine_split/Tests_march_18_bbox/labels"
+DATA_YAML = SCRIPT_DIR / "datasets/Test_Piscine_split/Tests_march_18_bbox/data.yaml"
 
-model = YOLO("yolov8n-obb.pt")  # or yolov8s-obb.pt for better accuracy
+model = YOLO("yolov8n.pt")  # or yolov8s-obb.pt for better accuracy
 
 # Train
 model.train(
-    data="data.yaml",
+    data=DATA_YAML,
     epochs=100,
-    imgsz=640,
+    imgsz=1280,
     batch=16,
     device="cpu",        # or "cpu"
     workers=4,
-    name="obb_model"
+    name="bbox_18_mars"
 )
 
