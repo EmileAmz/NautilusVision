@@ -8,13 +8,16 @@ from pathlib import Path
 # ---------------- CONFIG ----------------
 SCRIPT_DIR = Path(__file__).parent.resolve()
 REPO_ROOT = SCRIPT_DIR.parent.parent
-IMAGE_DIR = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/rgb"
-LABEL_DIR = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/labels_obb"
+# IMAGE_DIR = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/rgb"
+# LABEL_DIR = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/labels_obb"
+IMAGE_DIR = Path("C:/Users/eaime/Documents/S7GRO/Nautilus images sim/captured_images")
+LABEL_DIR = Path("C:/Users/eaime/Documents/S7GRO/Nautilus labels sim/captured_labels")
 DEPTH_DIR = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/depth"
 IMAGE_EXT = ".png"
-DATA_YAML = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/data_obb.yaml"
-START_INDEX = 0
-ANNOTATION_MODE = "obb"  # "bbox" or "obb"
+# DATA_YAML = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/data_obb.yaml"
+DATA_YAML = Path("C:/Users/eaime/Documents/S7GRO/Nautilus images sim/data.yaml")
+START_INDEX = 100
+ANNOTATION_MODE = "bbox"  # "bbox" or "obb"
 
 # ----------------------------------------
 

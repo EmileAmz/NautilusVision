@@ -12,7 +12,12 @@ DEPTH_DIR = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/depth"
 IMAGE_EXT = ".png"
 DATA_YAML = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/data_bbox.yaml"
 
+IMAGE_DIR = Path("C:/Users/eaime/Documents/S7GRO/Nautilus images sim/captured_images")
+LABEL_DIR = Path("C:/Users/eaime/Documents/S7GRO/Nautilus images sim/captured_labels")
+DATA_YAML = Path("C:/Users/eaime/Documents/S7GRO/Nautilus images sim/data.yaml")
+
 OUTPUT_DIR = REPO_ROOT / "datasets/Test_Piscine_Split/Tests_march_18_bbox"
+OUTPUT_DIR = Path("C:/Users/eaime/Documents/S7GRO/Nautilus images sim split")
 
 SPLIT_RATIO = (0.7, 0.15, 0.15)  # train, val, test
 SEED = 42
