@@ -41,8 +41,7 @@ def detect_orange_boxes(img, min_area=900):
     return boxes, mask
 
 
-def find_depth(image_path, kernel_size=5, half=10, use_filtered_depth=False,
-               fx=1774, fy=1774, cx=None, cy=None):
+def find_depth(image_path, kernel_size, half, use_filtered_depth=False):
     image_path = Path(image_path)
     depth_dir = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\depth")
     depth_path = depth_dir / image_path.name
@@ -52,12 +51,6 @@ def find_depth(image_path, kernel_size=5, half=10, use_filtered_depth=False,
         raise ValueError(f"Impossible de charger l'image RGB : {image_path}")
 
     h, w = rgb.shape[:2]
-
-    # Si cx, cy ne sont pas donnés, on prend le centre de l'image utilisée
-    if cx is None:
-        cx = w / 2
-    if cy is None:
-        cy = h / 2
 
     # Détection orange
     boxes, mask = detect_orange_boxes(rgb)
@@ -110,12 +103,7 @@ def find_depth(image_path, kernel_size=5, half=10, use_filtered_depth=False,
 
         angle = find_angle(
             x_center=x_center,
-            y_center=y_center,
             depth_mean=depth_mean,
-            fx=fx,
-            fy=fy,
-            cx=cx,
-            cy=cy
         )
 
         results.append({
@@ -151,8 +139,11 @@ def find_depth(image_path, kernel_size=5, half=10, use_filtered_depth=False,
     return results, output, mask
 
 
-def find_angle(x_center, y_center, depth_mean, fx, fy, cx, cy):
+def find_angle(x_center, depth_mean):
     # Coordonnée horizontale dans le repère caméra
+    fx = 728
+    cx = 640
+
     X = (x_center - cx) * depth_mean / fx
 
     # Yaw pour aligner l'objet avec le centre
@@ -181,8 +172,6 @@ if __name__ == "__main__":
                 kernel_size=5,
                 half=5,
                 use_filtered_depth=False,
-                fx=1774,
-                fy=1774
             )
 
             # Sauvegarde image résultat

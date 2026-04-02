@@ -14,12 +14,15 @@ def vertical_median_filter(img, ksize=5):
 
     return out
 
+def median_filter_2d(img, ksize):
+    return cv2.medianBlur(img, ksize)
+
 def filter_depth(depth_path, kernel_size):
 
 # ---------------- CONFIG ----------------
 #depth_path = Path(r"C:\Users\Xavier Lefebvre\Documents\GitHub\NautilusVision\datasets\Test_Piscine_a_annoter\Tests_march_18\depth\1773859763.894.png")
 
-    FILTER_MODE = "none"
+    FILTER_MODE = "2d"
     # options: "none", "vertical", "horizontal", "2d"
 
     KERNEL_SIZE = kernel_size
@@ -54,7 +57,8 @@ def filter_depth(depth_path, kernel_size):
         depth_filtered = cv2.GaussianBlur(depth, (KERNEL_SIZE, 1), 0)
 
     elif FILTER_MODE == "2d":
-        depth_filtered = cv2.GaussianBlur(depth, (KERNEL_SIZE, KERNEL_SIZE), 0)
+        #depth_filtered = cv2.GaussianBlur(depth, (KERNEL_SIZE, KERNEL_SIZE), 0)
+        depth_filtered = median_filter_2d(depth, KERNEL_SIZE)
 
     else:
         raise ValueError(f"Mode inconnu: {FILTER_MODE}")
@@ -62,34 +66,32 @@ def filter_depth(depth_path, kernel_size):
     return depth_filtered
 
 if __name__ == "__main__":
-    # ---------------- NORMALISATION VISUELLE ----------------
+    depth_path = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\depth\1775077000.068.png")
+    depth_filtered = filter_depth(depth_path, 5)
 
-    depth_path = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\depth\1774885190.749.png")
-    depth_filtered = filter_depth(depth_path, 1)
-    valid_mask = depth_filtered > 0
+    # ---------------- CLEAN ----------------
+    depth_filtered = depth_filtered.astype(np.float32)
 
-    if not np.any(valid_mask):
-        raise ValueError("Pas de données valides")
+    # Remplacer valeurs invalides (0) par NaN pour affichage
+    #depth_filtered[depth_filtered == 0] = np.nan
 
-    valid_values = depth_filtered[valid_mask]
-
-    #vmin = np.percentile(valid_values, 2)
-    #vmax = np.percentile(valid_values, 98)
+    # ---------------- CLIP à 4000 mm ----------------
+    MAX_DEPTH = 5000  # mm (4 m)
+    depth_clipped = np.clip(depth_filtered, 0, MAX_DEPTH)
 
     # ---------------- PLOT ----------------
-
     plt.figure(figsize=(10, 6))
 
-    im = plt.imshow(depth_filtered, cmap="plasma")
-    cbar = plt.colorbar(im)
-    cbar.set_label("Profondeur (RAW)")
+    im = plt.imshow(depth_clipped, cmap="plasma", vmin=0, vmax=MAX_DEPTH)
 
-    plt.title("Depth RAW")
+    cbar = plt.colorbar(im)
+    cbar.set_label("Profondeur (mm)")
+
+    plt.title("Depth (clipped à 4m)")
     plt.axis("off")
 
     plt.tight_layout()
     plt.show()
-
     """
     plt.figure(figsize=(10, 6))
 
