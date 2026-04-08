@@ -2,6 +2,11 @@ import numpy as np
 import cv2
 from scripts.Normalisation_depth import filter_depth
 
+#PARAMETRES DE LA CAMERA
+cx = 623
+fx = 728
+fy = 726
+cy = 370
 
 def find_depth(depth_path, kernel_size, half, box, image_width, image_height, use_filtered_depth=False):
     # Charger la depth map
@@ -13,16 +18,15 @@ def find_depth(depth_path, kernel_size, half, box, image_width, image_height, us
     if depth is None:
         raise ValueError(f"Impossible de charger l'image depth : {depth_path}")
 
-    # Cas fréquent : (H, W, 1)
     depth = np.squeeze(depth)
 
     if len(depth.shape) != 2:
         raise ValueError(f"Depth non 2D après squeeze : {depth.shape}")
 
-    x_center = box["cx"]
-    y_center = box["cy"]
+    x_center = int(box["cx"])
+    y_center = int(box["cy"])
 
-    # Patch autour du centre pour estimer la profondeur
+    # Patch autour du centre
     x1 = max(0, x_center - half)
     x2 = min(image_width, x_center + half)
     y1 = max(0, y_center - half)
@@ -33,17 +37,23 @@ def find_depth(depth_path, kernel_size, half, box, image_width, image_height, us
     if patch.size == 0:
         return None
 
-    # Ignore les zéros si depth invalide
     valid_patch = patch[patch > 0]
 
     if valid_patch.size == 0:
         return None
 
-    depth_mean = float(np.median(valid_patch))
-    return depth_mean
+    Z = float(np.median(valid_patch))
+
+    # Calcul vraie distance
+    X = (x_center - cx) * Z / fx
+    Y = (y_center - cy) * Z / fy
+
+    true_distance = np.sqrt(X**2 + Y**2 + Z**2)
+
+    return true_distance
 
 
-def find_angle(box, depth_mean, fx=728, cx=640):
+def find_angle(box, depth_mean):
     if depth_mean is None:
         return None
 

@@ -42,7 +42,7 @@ def load_yolo_boxes(txt_path, img_width, img_height):
         scale_y = img_height / INPUT_SIZE
 
         # Conversion YOLO -> pixels
-        cx = int(cx * scale_x) +20
+        cx = int(cx * scale_x)
         cy = int(cy * scale_y)
         w = int(w * scale_x)
         h = int(h * scale_y)
@@ -67,7 +67,7 @@ def load_yolo_boxes(txt_path, img_width, img_height):
         depth = find_depth(
             depth_path=depth_path,
             kernel_size=5,
-            half=25,
+            half=10,
             box=box,
             image_width=img_width,
             image_height=img_height,
@@ -127,7 +127,7 @@ def draw_boxes_and_centers(img, boxes, angle_gate):
     cv2.putText(
         output,
         f"angle_gate={angle_gate:.2f} deg" if angle_gate is not None else "angle_gate invalide",
-        (20, 40),
+        (20, 100),
         cv2.FONT_HERSHEY_SIMPLEX,
         0.8,
         (255, 0, 0),
@@ -141,86 +141,23 @@ def find_angle_plane(boxes):
     profondeurs = []
     angles = []
     C = 1442
-    phi = 0
 
     for box in boxes:
         profondeurs.append(box["depth"])
         angles.append(box["angle"])
 
-    if angles[0] <= 0 and angles[1] <= 0:
+    h_3 = np.abs(profondeurs[1] - profondeurs[0])
+    angle = np.arccos(h_3/C)
+    angle = np.degrees(angle)
 
-        if np.abs(angles[0]) > np.abs(angles[1]):
-            teta_g = np.abs(angles[0])
-            A = profondeurs[0]
-
-            alpha = np.abs(angles[1])
-            B = profondeurs[1]
-
-        else:
-            teta_g = np.abs(angles[1])
-            A = profondeurs[1]
-
-            alpha = np.abs(angles[0])
-            B = profondeurs[0]
-
-        teta_c = teta_g - alpha
-        phi = 90 - alpha
-        teta_c_rad = np.radians(teta_c)
-        teta_a_rad = np.arcsin((np.sin(teta_c_rad) * A) / C)
-        teta_a = np.degrees(teta_a_rad)
-        result = 180 - teta_a - phi
-
-    elif angles[0] > 0 and angles[1] > 0:
-        if np.abs(angles[0]) > np.abs(angles[1]):
-            teta_g = np.abs(angles[1])
-            A = profondeurs[1]
-
-            alpha = np.abs(angles[0])
-            B = profondeurs[0]
-
-        else:
-            teta_g = np.abs(angles[0])
-            A = profondeurs[0]
-
-            alpha = np.abs(angles[1])
-            B = profondeurs[1]
-
-        teta_c = teta_g - alpha
-        phi = 90 - alpha
-        teta_c_rad = np.radians(teta_c)
-        teta_a_rad = np.arcsin((np.sin(teta_c_rad) * A) / C)
-        teta_a = np.degrees(teta_a_rad)
-        result = 180 - teta_a - phi
-
-
-    else:
-        if np.abs(angles[0]) > np.abs(angles[1]):
-            teta_g = np.abs(angles[0])
-            A = profondeurs[0]
-
-            alpha = np.abs(angles[1])
-            B = profondeurs[1]
-
-        else:
-            teta_g = np.abs(angles[1])
-            A = profondeurs[1]
-
-            alpha = np.abs(angles[0])
-            B = profondeurs[0]
-
-        teta_c = teta_g + alpha
-        phi = alpha
-        teta_c_rad = np.radians(teta_c)
-        teta_a_rad = np.arcsin((np.sin(teta_c_rad) * A) / C)
-        teta_a = np.degrees(teta_a_rad)
-        result = 90 - teta_a - phi
+    result = 90 - angle
 
     return result
 
 
 if __name__ == "__main__":
-    img_path = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\Gate_table\1775152864.904.png")
-    txt_path = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\labels_bbox\1775152864.904.txt")
+    img_path = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\Gate_table\1775152820.303.png")
+    txt_path = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\labels_bbox\1775152820.303.txt")
 
     img = cv2.imread(str(img_path))
     if img is None:

@@ -14,7 +14,6 @@ def vertical_median_filter(img, ksize=5):
         out[y, :] = np.median(window, axis=0)
 
     return out
-
 def median_filter_2d(img, ksize):
     if ksize % 2 == 0:
         ksize += 1  # force impair automatiquement
@@ -28,6 +27,86 @@ def median_filter_2d(img, ksize):
     # print("dtype:", img.dtype)
 
     return median_filter(img, size=ksize)
+
+def median_filter_ignore_zeros(img, ksize, zero_threshold=0.8):
+    if ksize % 2 == 0:
+        ksize += 1  # force impair
+
+    img = np.squeeze(img)
+
+    if img.ndim != 2:
+        raise ValueError(f"Image non 2D après squeeze: {img.shape}")
+
+    h, w = img.shape
+    r = ksize // 2
+
+    padded = np.pad(img, r, mode='reflect')
+    output = np.zeros_like(img, dtype=np.float32)
+
+    for i in range(h):
+        for j in range(w):
+            patch = padded[i:i+ksize, j:j+ksize]
+
+            # ratio de zéros
+            zero_ratio = np.sum(patch == 0) / patch.size
+
+            if zero_ratio >= zero_threshold:
+                output[i, j] = 0
+            else:
+                # enlever les zéros
+                valid_values = patch[patch != 0]
+
+                if valid_values.size > 0:
+                    output[i, j] = np.median(valid_values)
+                else:
+                    output[i, j] = 0  # fallback sécurité
+
+    return output.astype(img.dtype)
+
+def apply_rbf_bilateral_filter(depth, kernel_size, sigma_spatial, sigma_range):
+    """
+    Filtre RBF edge-preserving (style bilateral).
+
+    - sigma_spatial contrôle l'influence de la distance dans l'image
+    - sigma_range contrôle l'influence de la différence de profondeur
+
+    Plus sigma_range est petit, plus les bords sont préservés.
+    """
+    if kernel_size % 2 == 0 or kernel_size < 1:
+        raise ValueError("Le kernel_size doit être impair et >= 1")
+    if sigma_spatial <= 0 or sigma_range <= 0:
+        raise ValueError("sigma_spatial et sigma_range doivent être > 0")
+
+    depth = depth.astype(np.float32)
+    h, w = depth.shape
+    radius = kernel_size // 2
+
+    padded = np.pad(depth, radius, mode="reflect")
+    filtered = np.zeros_like(depth, dtype=np.float32)
+
+    # poids spatial fixe
+    y, x = np.mgrid[-radius:radius + 1, -radius:radius + 1]
+    spatial_weights = np.exp(-(x ** 2 + y ** 2) / (2 * sigma_spatial ** 2)).astype(np.float32)
+
+    for i in range(h):
+        for j in range(w):
+            local_patch = padded[i:i + kernel_size, j:j + kernel_size]
+            center_value = padded[i + radius, j + radius]
+
+            # poids sur la différence de profondeur
+            range_weights = np.exp(-((local_patch - center_value) ** 2) / (2 * sigma_range ** 2)).astype(np.float32)
+
+            # combinaison spatiale + profondeur
+            weights = spatial_weights * range_weights
+            weights_sum = np.sum(weights)
+
+            if weights_sum > 1e-8:
+                filtered[i, j] = np.sum(weights * local_patch) / weights_sum
+            else:
+                filtered[i, j] = center_value
+
+    return filtered
+
 
 def filter_depth(depth_path, kernel_size):
 
@@ -71,6 +150,8 @@ def filter_depth(depth_path, kernel_size):
     elif FILTER_MODE == "2d":
         #depth_filtered = cv2.GaussianBlur(depth, (KERNEL_SIZE, KERNEL_SIZE), 0)
         depth_filtered = median_filter_2d(depth, KERNEL_SIZE)
+        #depth_filtered = median_filter_ignore_zeros(depth, KERNEL_SIZE)
+        #depth_filtered = apply_rbf_bilateral_filter(depth_filtered, KERNEL_SIZE,1,150 )
 
     else:
         raise ValueError(f"Mode inconnu: {FILTER_MODE}")
@@ -80,7 +161,7 @@ def filter_depth(depth_path, kernel_size):
 if __name__ == "__main__":
     #depth_path = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\depth\1775152864.904.png")
     depth_path = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\depth_mcgill\depth_20260404_145526.png")
-    depth_filtered = filter_depth(depth_path, 5)
+    depth_filtered = filter_depth(depth_path, 7)
 
     # ---------------- CLEAN ----------------
     depth_filtered = depth_filtered.astype(np.float32)
