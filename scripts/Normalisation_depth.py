@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
+from scipy.ndimage import median_filter
 
 def vertical_median_filter(img, ksize=5):
     pad = ksize // 2
@@ -15,7 +16,18 @@ def vertical_median_filter(img, ksize=5):
     return out
 
 def median_filter_2d(img, ksize):
-    return cv2.medianBlur(img, ksize)
+    if ksize % 2 == 0:
+        ksize += 1  # force impair automatiquement
+
+    img = np.squeeze(img)
+
+    if img.ndim != 2:
+        raise ValueError(f"Image non 2D après squeeze: {img.shape}")
+
+    # Vérification debug (optionnel)
+    # print("dtype:", img.dtype)
+
+    return median_filter(img, size=ksize)
 
 def filter_depth(depth_path, kernel_size):
 
@@ -66,7 +78,8 @@ def filter_depth(depth_path, kernel_size):
     return depth_filtered
 
 if __name__ == "__main__":
-    depth_path = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\depth\1775077000.068.png")
+    #depth_path = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\depth\1775152864.904.png")
+    depth_path = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\depth_mcgill\depth_20260404_145526.png")
     depth_filtered = filter_depth(depth_path, 5)
 
     # ---------------- CLEAN ----------------

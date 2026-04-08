@@ -279,8 +279,8 @@ if __name__ == "__main__":
     import os
 
     # Dossier d'entrée et de sortie
-    INPUT_DIR = Path("C:/Users/Xavier Lefebvre/Documents/GitHub/NautilusVision/datasets/Test_Piscine_a_annoter/Tests_march_18/rgb")
-    OUTPUT_DIR = Path("C:/Users/Xavier Lefebvre/Documents/GitHub/NautilusVision/runs/correction")
+    INPUT_DIR = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\rgb_mcgill")
+    OUTPUT_DIR = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\rgb_mcgill_lol")
 
     # Crée le dossier de sortie s'il n'existe pas
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
