@@ -8,10 +8,8 @@ from pathlib import Path
 # ---------------- CONFIG ----------------
 SCRIPT_DIR = Path(__file__).parent.resolve()
 REPO_ROOT = SCRIPT_DIR.parent.parent
-# IMAGE_DIR = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/rgb"
-# LABEL_DIR = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/labels_obb"
-IMAGE_DIR = Path("C:/Users/eaime/Documents/S7GRO/Nautilus images sim/captured_images")
-LABEL_DIR = Path("C:/Users/eaime/Documents/S7GRO/Nautilus labels sim/captured_labels")
+IMAGE_DIR = Path("C:/Users/Xavier Lefebvre/Documents/dataset/Gate_table")
+LABEL_DIR = Path("C:/Users/Xavier Lefebvre/Documents/dataset/labels_bbox")
 DEPTH_DIR = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/depth"
 IMAGE_EXT = ".png"
 # DATA_YAML = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/data_obb.yaml"

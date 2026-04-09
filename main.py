@@ -6,7 +6,8 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from ultralytics import YOLO
-from scripts.Point_milieu import *
+#from scripts.Point_milieu import *
+from scripts.RealTime_Depth_and_angle import *
 
 
 # ---------------- CONFIG ----------------
@@ -48,22 +49,56 @@ if USE_CAMERA:
     monoRightOut.link(stereo.right)
 
     stereo.setRectification(True)
-    stereo.setExtendedDisparity(True)
     stereo.setLeftRightCheck(True)
+    stereo.setSubpixel(True)
+    stereo.setExtendedDisparity(False)
+
+    # Align depth to RGB camera
+    stereo.setDepthAlign(dai.CameraBoardSocket.CAM_A)
+
+    # Width must be multiple of 16
+    stereo.setOutputSize(1280, 720)
 
     monoQueue = monoLeftOut.createOutputQueue(maxSize=4)
     monoQueueR = monoRightOut.createOutputQueue(maxSize=4)
     rgbQueue = rgbOut.createOutputQueue(maxSize=4)
     dispQueue = stereo.disparity.createOutputQueue()
+    depthQueue = stereo.depth.createOutputQueue(maxSize=4)
+
+    inDepth = None
 
 # --------------Example usage--------------
     with pipeline:
         pipeline.start()
 
         while pipeline.isRunning():
-            rgb = rgbQueue.get().getFrame()
-            rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
-            cv2.imshow("rgb", rgb)
+            inRgb = rgbQueue.get()
+            frame = inRgb.getCvFrame()
+
+            inDepth = depthQueue.get()
+            if inDepth is not None:
+                depth_frame = inDepth.getFrame()
+
+
+            # Si nécessaire, convertis en BGR pour affichage OpenCV
+            if len(frame.shape) == 2:
+                frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+
+            # Détection
+            boxes, mask = detect_orange_boxes(frame, depth_frame, min_area=900)
+
+            # Dessin des boîtes
+            vis = draw_orange_boxes(frame, boxes)
+
+            # Affichage
+            cv2.imshow("rgb_orange_detection", vis)
+            cv2.imshow("orange_mask", mask)
+
+            # Print console optionnel
+            if len(boxes) > 0:
+                biggest = max(boxes, key=lambda b: b["area"])
+                print(f"Detected box: cx={biggest['cx']}, cy={biggest['cy']}, area={biggest['area']:.1f}")
+
             key = cv2.waitKey(1)
             if key == PAUSE_KEY:
                 cv2.waitKey(0)
@@ -100,8 +135,6 @@ else:
 
 
 # ---------------CALL FUNCTION--------------
-
-find_depth(results, model)
 
 
 cv2.destroyAllWindows()
