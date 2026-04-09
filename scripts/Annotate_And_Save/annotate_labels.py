@@ -2,6 +2,7 @@ import cv2
 import os
 import glob
 import yaml
+import numpy as np
 from pathlib import Path
 
 # ---------------- CONFIG ----------------
@@ -11,8 +12,9 @@ IMAGE_DIR = Path("C:/Users/Xavier Lefebvre/Documents/dataset/Gate_table")
 LABEL_DIR = Path("C:/Users/Xavier Lefebvre/Documents/dataset/labels_bbox")
 DEPTH_DIR = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/depth"
 IMAGE_EXT = ".png"
-DATA_YAML = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/data.yaml"
-START_INDEX = 0
+# DATA_YAML = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/data_obb.yaml"
+DATA_YAML = Path("C:/Users/eaime/Documents/S7GRO/Nautilus images sim/data.yaml")
+START_INDEX = 100
 ANNOTATION_MODE = "bbox"  # "bbox" or "obb"
 
 # ----------------------------------------
@@ -78,10 +80,26 @@ def delete_nearest_label(x, y, max_dist_px=40):
     best_i = None
     best_d = float("inf")
 
-    for i, (_, xc, yc, _, _) in enumerate(labels):
-        px = int(xc * img_w)
-        py = int(yc * img_h)
+    for i, l in enumerate(labels):
+
+        if ANNOTATION_MODE == "bbox":
+            _, xc, yc, _, _ = l
+            px = int(xc * img_w)
+            py = int(yc * img_h)
+
+        else:  # OBB
+            pts = []
+            for j in range(4):
+                px = l[1 + 2*j] * img_w
+                py = l[2 + 2*j] * img_h
+                pts.append((px, py))
+
+            # use center of polygon
+            px = int(sum(p[0] for p in pts) / 4)
+            py = int(sum(p[1] for p in pts) / 4)
+
         d = ((px - x) ** 2 + (py - y) ** 2) ** 0.5
+
         if d < best_d and d < max_dist_px:
             best_d = d
             best_i = i
@@ -164,6 +182,7 @@ def mouse_cb(event, x, y, flags, param):
     global drawing, x_start, y_start
     global mouse_x, mouse_y
     global zoom, zoom_cx, zoom_cy
+    global click_points
 
     mouse_x, mouse_y = x, y
 
@@ -216,27 +235,51 @@ def mouse_cb(event, x, y, flags, param):
                     labels.append([current_class, xc, yc, w, h])
 
 
+
         elif ANNOTATION_MODE == "obb":
 
             click_points.append((img_x, img_y))
 
             if len(click_points) == 3:
 
-                p1, p2, p3 = click_points
-
-                # compute rectangle
-
                 import numpy as np
 
-                v = np.array(p2) - np.array(p1)
+                p1 = np.array(click_points[0], dtype=float)
 
-                v_perp = np.array([-v[1], v[0]])
+                p2 = np.array(click_points[1], dtype=float)
 
-                p4 = tuple((np.array(p3) + (np.array(p1) - np.array(p2))).astype(int))
+                p3 = np.array(click_points[2], dtype=float)
 
-                pts = [p1, p2, p4, p3]
+                # Direction vector (length of box)
 
-                # normalize
+                v = p2 - p1
+
+                length = np.linalg.norm(v)
+
+                if length == 0:
+                    click_points = []
+
+                    return
+
+                v_unit = v / length
+
+                # Perpendicular vector
+
+                perp = np.array([-v_unit[1], v_unit[0]])
+
+                # Width = projection of (p3 - p1) onto perpendicular
+
+                width = np.dot(p3 - p1, perp)
+
+                # Build rectangle corners
+
+                p4 = p1 + perp * width
+
+                p5 = p2 + perp * width
+
+                pts = [p1, p2, p5, p4]  # ✅ CORRECT ORDER (no crossing)
+
+                # Normalize
 
                 norm_pts = []
 
@@ -296,6 +339,7 @@ while idx < len(image_files):
     zoom = 1.0
 
     labels = load_labels(str(label_path))   # load_labels expects string path
+    click_points = []
 
     while True:
         disp = get_zoom_view(img).copy()
@@ -312,6 +356,15 @@ while idx < len(image_files):
                 px = int((p[0] - off_x) * zoom)
                 py = int((p[1] - off_y) * zoom)
                 cv2.circle(disp, (px, py), 4, (255, 0, 0), -1)
+
+        if ANNOTATION_MODE == "obb" and len(click_points) == 2:
+            p1 = click_points[0]
+            p2 = click_points[1]
+
+            p1d = (int((p1[0] - off_x) * zoom), int((p1[1] - off_y) * zoom))
+            p2d = (int((p2[0] - off_x) * zoom), int((p2[1] - off_y) * zoom))
+
+            cv2.line(disp, p1d, p2d, (255, 0, 0), 2)
 
         info = f"{idx+1}/{len(image_files)} | Class {current_class}: {CLASSES[current_class]} | Zoom {zoom:.2f}x"
         cv2.putText(disp, info, (10, 25),
@@ -331,6 +384,7 @@ while idx < len(image_files):
             break
         elif key == ord('c'):
             drawing = False
+            click_points = []
         elif key == ord('d'):
             img_x = int(mouse_x / zoom + off_x)
             img_y = int(mouse_y / zoom + off_y)

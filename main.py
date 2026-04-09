@@ -39,9 +39,10 @@ if USE_CAMERA:
 
     rgbOut = rgb.requestOutput(
         size=(1280, 720),
-        fps=10,
-        type=dai.ImgFrame.Type.NV12,
+        fps=15,
+        type=dai.ImgFrame.Type.RGB888i,
     )
+
     monoLeftOut = monoLeft.requestFullResolutionOutput()
     monoRightOut = monoRight.requestFullResolutionOutput()
     monoLeftOut.link(stereo.left)
