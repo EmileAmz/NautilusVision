@@ -14,7 +14,7 @@ DEPTH_DIR = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/depth"
 IMAGE_EXT = ".jpg"
 DATA_YAML = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/data_bbox.yaml"
 START_INDEX = 0
-ANNOTATION_MODE = "bbox"  # "bbox" or "obb"
+ANNOTATION_MODE = "obb"  # "bbox" or "obb"
 
 # ----------------------------------------
 
@@ -50,17 +50,22 @@ CLASSES = load_classes_from_yaml(DATA_YAML)
 
 # ---------- LABEL IO ----------
 def load_labels(label_path):
-
     if not os.path.exists(label_path):
         os.makedirs(os.path.dirname(label_path), exist_ok=True)
-        open(label_path, "w").close()  # create empty label file
+        open(label_path, "w").close()
         return []
+
     data = []
     with open(label_path, "r") as f:
         for line in f:
             p = line.strip().split()
-            if len(p) == 5:
+
+            if ANNOTATION_MODE == "bbox" and len(p) == 5:
                 data.append(list(map(float, p)))
+
+            elif ANNOTATION_MODE == "obb" and len(p) == 9:
+                data.append(list(map(float, p)))
+
     return data
 
 
