@@ -8,13 +8,12 @@ from pathlib import Path
 # ---------------- CONFIG ----------------
 SCRIPT_DIR = Path(__file__).parent.resolve()
 REPO_ROOT = SCRIPT_DIR.parent.parent
-IMAGE_DIR = Path("C:/Users/Xavier Lefebvre/Documents/dataset/Gate_table")
-LABEL_DIR = Path("C:/Users/Xavier Lefebvre/Documents/dataset/labels_bbox")
+IMAGE_DIR = Path("C:/Users/Xavier Lefebvre/Documents/dataset/rgb_oakd_14avril")
+LABEL_DIR = Path("C:/Users/Xavier Lefebvre/Documents/dataset/labels_bbox_14avril")
 DEPTH_DIR = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/depth"
-IMAGE_EXT = ".png"
-# DATA_YAML = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/data_obb.yaml"
-DATA_YAML = Path("C:/Users/eaime/Documents/S7GRO/Nautilus images sim/data.yaml")
-START_INDEX = 100
+IMAGE_EXT = ".jpg"
+DATA_YAML = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/data_bbox.yaml"
+START_INDEX = 0
 ANNOTATION_MODE = "bbox"  # "bbox" or "obb"
 
 # ----------------------------------------
@@ -328,7 +327,8 @@ while idx < len(image_files):
     base = img_path.stem                 # gets filename without extension
     label_path = LABEL_DIR / f"{base}.txt"
 
-    img = cv2.imread(str(img_path))       # cv2 needs string path
+    img = cv2.imread(str(img_path))
+    # cv2 needs string path
     if img is None:
         print(f"Warning: Could not read {img_path}")
         idx += 1
