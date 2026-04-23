@@ -1,7 +1,8 @@
 import cv2
 import numpy as np
 from pathlib import Path
-from Test_depth_and_angle import find_angle, find_depth
+from scripts.Depth_and_Angle.Test_depth_and_angle import find_angle, find_depth
+from Angle_between_object import find_angle_plane
 
 
 def load_yolo_boxes(txt_path, img_width, img_height):
@@ -135,24 +136,6 @@ def draw_boxes_and_centers(img, boxes, angle_gate):
     )
 
     return output
-
-
-def find_angle_plane(boxes):
-    profondeurs = []
-    angles = []
-    C = 1442
-
-    for box in boxes:
-        profondeurs.append(box["depth"])
-        angles.append(box["angle"])
-
-    h_3 = np.abs(profondeurs[1] - profondeurs[0])
-    angle = np.arccos(h_3/C)
-    angle = np.degrees(angle)
-
-    result = 90 - angle
-
-    return result
 
 
 if __name__ == "__main__":
