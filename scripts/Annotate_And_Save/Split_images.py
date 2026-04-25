@@ -4,29 +4,26 @@ import shutil
 from pathlib import Path
 
 # -------- CONFIG --------
-SCRIPT_DIR = Path(__file__).parent.resolve()
-REPO_ROOT = SCRIPT_DIR.parent.parent
-IMAGE_DIR = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/rgb_filtered"
-LABEL_DIR = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/labels_bbox"
-DEPTH_DIR = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/depth"
-IMAGE_EXT = ".png"
-DATA_YAML = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/data_bbox.yaml"
+IMAGE_DIR = Path("C:/Users/eaime/Documents/S7GRO/Nautilus images sim split/320p/Total/images")
+LABEL_DIR = Path("C:/Users/eaime/Documents/S7GRO/Nautilus images sim split/320p/Total/labels")
+DATA_YAML = Path("C:/Users/eaime/Documents/S7GRO/Nautilus images sim split/320p/Total/data.yaml")
 
-IMAGE_DIR = Path("C:/Users/eaime/Documents/S7GRO/Nautilus images sim/captured_images")
-LABEL_DIR = Path("C:/Users/eaime/Documents/S7GRO/Nautilus images sim/captured_labels")
-DATA_YAML = Path("C:/Users/eaime/Documents/S7GRO/Nautilus images sim/data.yaml")
-
-OUTPUT_DIR = REPO_ROOT / "datasets/Test_Piscine_Split/Tests_march_18_bbox"
-OUTPUT_DIR = Path("C:/Users/eaime/Documents/S7GRO/Nautilus images sim split")
+OUTPUT_DIR = Path("C:/Users/eaime/Documents/S7GRO/Nautilus images sim split/320p")
 
 SPLIT_RATIO = (0.7, 0.15, 0.15)  # train, val, test
 SEED = 42
+
+def normalize_stem(name: str):
+    return name.replace("ds2_", "")
 
 # -------- SETUP --------
 random.seed(SEED)
 
 image_files = list(IMAGE_DIR.glob("*.*"))
 image_files = [f for f in image_files if f.suffix.lower() in [".jpg", ".jpeg", ".png"]]
+
+image_stems = {f.stem for f in IMAGE_DIR.glob("*.*")}
+label_stems = {f.stem for f in LABEL_DIR.glob("*.txt")}
 
 random.shuffle(image_files)
 
@@ -52,7 +49,7 @@ for split in splits.keys():
 # -------- COPY FILES --------
 for split, files in splits.items():
     for img_path in files:
-        label_path = LABEL_DIR / (img_path.stem + ".txt")
+        label_path = LABEL_DIR / (normalize_stem(img_path.stem) + ".txt")
 
         # Copy image
         shutil.copy(img_path, OUTPUT_DIR / split / "images" / img_path.name)

@@ -7,9 +7,9 @@ SCRIPT_DIR = Path(__file__).parent.parent.resolve()
 # DATA_YAML = SCRIPT_DIR / "datasets/Test_Piscine_split/Tests_march_18_bbox/data.yaml"
 
 
-IMAGE_DIR = Path("C:/Users/eaime/Documents/S7GRO/Nautilus images sim split")
-LABEL_DIR = Path("C:/Users/eaime/Documents/S7GRO/Nautilus images sim split")
-DATA_YAML = Path("C:/Users/eaime/Documents/S7GRO/Nautilus images sim split/data.yaml")
+IMAGE_DIR = Path("C:/Users/eaime/Documents/S7GRO/Nautilus images sim split/320p/")
+LABEL_DIR = Path("C:/Users/eaime/Documents/S7GRO/Merged_dataset/labels_obb")
+DATA_YAML = Path("C:/Users/eaime/Documents/S7GRO/Nautilus images sim split/320p/data.yaml")
 
 model = YOLO("yolov8n.pt")  # or yolov8s-obb.pt for better accuracy
 
@@ -17,10 +17,10 @@ model = YOLO("yolov8n.pt")  # or yolov8s-obb.pt for better accuracy
 model.train(
     data=DATA_YAML,
     epochs=100,
-    imgsz=640,
+    imgsz=320,
     batch=16,
     device="cpu",        # or "cpu"
     workers=4,
-    name="bbox_sim"
+    name="bbox_sim_320"
 )
 

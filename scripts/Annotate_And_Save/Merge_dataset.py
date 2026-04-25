@@ -1,73 +1,84 @@
-import os
-import random
 import shutil
 from pathlib import Path
 
-# -------- CONFIG --------
-SCRIPT_DIR = Path(__file__).parent.resolve()
-REPO_ROOT = SCRIPT_DIR.parent.parent
-IMAGE_DIR = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/rgb_filtered"
-LABEL_DIR = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/labels_bbox"
-DEPTH_DIR = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/depth"
-IMAGE_EXT = ".png"
-DATA_YAML = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/data_bbox.yaml"
+# ===================== CONFIG =====================
+DATASET1_IMAGES = Path("C:/Users/eaime/Documents/S7GRO/PHOTO_14AVRIL/images")
+DATASET1_LABELS = Path("C:/Users/eaime/Documents/S7GRO/PHOTO_14AVRIL/labels_obb")
 
-IMAGE_DIR = Path("C:/Users/eaime/Documents/S7GRO/Nautilus images sim/captured_images")
-LABEL_DIR = Path("C:/Users/eaime/Documents/S7GRO/Nautilus images sim/captured_labels")
-DATA_YAML = Path("C:/Users/eaime/Documents/S7GRO/Nautilus images sim/data.yaml")
+DATASET2_IMAGES = Path("C:/Users/eaime/Documents/S7GRO/Nautilus_images_filtered_and_regular/images")
+DATASET2_LABELS = Path("C:/Users/eaime/Documents/S7GRO/Nautilus_images_filtered_and_regular/labels_obb")
 
-OUTPUT_DIR = REPO_ROOT / "datasets/Test_Piscine_Split/Tests_march_18_bbox"
-OUTPUT_DIR = Path("C:/Users/eaime/Documents/S7GRO/Nautilus images sim split")
+OUTPUT_IMAGES = Path("C:/Users/eaime/Documents/S7GRO/Merged_dataset/Total/images")
+OUTPUT_LABELS = Path("C:/Users/eaime/Documents/S7GRO/Merged_dataset/Total/labels_obb")
 
-SPLIT_RATIO = (0.7, 0.15, 0.15)  # train, val, test
-SEED = 42
+PREFIX_DS2 = "ds2"  # used ONLY if collision happens
+# ==================================================
 
-# -------- SETUP --------
-random.seed(SEED)
 
-image_files = list(IMAGE_DIR.glob("*.*"))
-image_files = [f for f in image_files if f.suffix.lower() in [".jpg", ".jpeg", ".png"]]
+def copy_dataset1(images_dir, labels_dir, out_images, out_labels):
+    valid_exts = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff"}
+    image_paths = [p for p in images_dir.iterdir() if p.suffix.lower() in valid_exts]
 
-random.shuffle(image_files)
+    print(f"\nCopying dataset 1: {len(image_paths)} images")
 
-n = len(image_files)
-n_train = int(n * SPLIT_RATIO[0])
-n_val = int(n * SPLIT_RATIO[1])
+    for img_path in image_paths:
+        # Copy image as-is
+        out_img = out_images / img_path.name
+        shutil.copy(img_path, out_img)
 
-train_files = image_files[:n_train]
-val_files = image_files[n_train:n_train + n_val]
-test_files = image_files[n_train + n_val:]
-
-splits = {
-    "train": train_files,
-    "val": val_files,
-    "test": test_files
-}
-
-# -------- CREATE FOLDERS --------
-for split in splits.keys():
-    (OUTPUT_DIR / split / "images").mkdir(parents=True, exist_ok=True)
-    (OUTPUT_DIR / split / "labels").mkdir(parents=True, exist_ok=True)
-
-# -------- COPY FILES --------
-for split, files in splits.items():
-    for img_path in files:
-        label_path = LABEL_DIR / (img_path.stem + ".txt")
-
-        # Copy image
-        shutil.copy(img_path, OUTPUT_DIR / split / "images" / img_path.name)
-
-        # Copy label if exists
+        # Copy label
+        label_path = labels_dir / (img_path.stem + ".txt")
         if label_path.exists():
-            shutil.copy(label_path, OUTPUT_DIR / split / "labels" / label_path.name)
+            shutil.copy(label_path, out_labels / label_path.name)
         else:
-            print(f"⚠️ Warning: No label for {img_path.name}")
+            print(f"  Warning: missing label for {img_path.name}")
 
 
-if DATA_YAML.exists():
-    shutil.copy(DATA_YAML, OUTPUT_DIR / "data.yaml")
-    print("✅ data.yaml copied to dataset root")
-else:
-    print("⚠️ data.yaml not found, skipping")
+def copy_dataset2(images_dir, labels_dir, out_images, out_labels, prefix):
+    valid_exts = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff"}
+    image_paths = [p for p in images_dir.iterdir() if p.suffix.lower() in valid_exts]
 
-print("✅ Dataset successfully split!")
+    print(f"\nCopying dataset 2: {len(image_paths)} images")
+
+    for img_path in image_paths:
+        target_img = out_images / img_path.name
+
+        # 🔥 Check collision
+        if target_img.exists():
+            new_name = f"{prefix}_{img_path.name}"
+            print(f"  Collision: {img_path.name} → {new_name}")
+        else:
+            new_name = img_path.name
+
+        out_img = out_images / new_name
+        shutil.copy(img_path, out_img)
+
+        # Handle label
+        label_path = labels_dir / (img_path.stem + ".txt")
+        if label_path.exists():
+            #if target_img.exists():
+            #    new_label_name = f"{prefix}_{label_path.name}"
+            #else:
+            new_label_name = label_path.name
+
+            out_label = out_labels / new_label_name
+            shutil.copy(label_path, out_label)
+        else:
+            print(f"  Warning: missing label for {img_path.name}")
+
+
+def main():
+    OUTPUT_IMAGES.mkdir(parents=True, exist_ok=True)
+    OUTPUT_LABELS.mkdir(parents=True, exist_ok=True)
+
+    # Step 1: copy dataset 1 normally
+    copy_dataset1(DATASET1_IMAGES, DATASET1_LABELS, OUTPUT_IMAGES, OUTPUT_LABELS)
+
+    # Step 2: copy dataset 2 with collision handling
+    copy_dataset2(DATASET2_IMAGES, DATASET2_LABELS, OUTPUT_IMAGES, OUTPUT_LABELS, PREFIX_DS2)
+
+    print("\nMerge complete.")
+
+
+if __name__ == "__main__":
+    main()
