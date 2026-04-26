@@ -4,16 +4,18 @@ import glob
 import yaml
 import numpy as np
 from pathlib import Path
+import tkinter as tk
+from tkinter import messagebox
 
 # ---------------- CONFIG ----------------
 SCRIPT_DIR = Path(__file__).parent.resolve()
 REPO_ROOT = SCRIPT_DIR.parent.parent
-IMAGE_DIR = Path("C:/Users/eaime/Documents/S7GRO/22-04-26/rgb-oakd")
-LABEL_DIR = Path("C:/Users/eaime/Documents/S7GRO/22-04-26/labels_obb")
+IMAGE_DIR = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\rgb_oakd_14avril")
+LABEL_DIR = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\labels_bbox_14avril")
 DEPTH_DIR = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/depth"
 IMAGE_EXT = ".jpg"
-DATA_YAML = Path("C:/Users/eaime/Documents/S7GRO/22-04-26/data.yaml")
-START_INDEX = 699
+DATA_YAML = Path(r"C:\Users\Xavier Lefebvre\Documents\GitHub\NautilusVision\datasets\Test_Piscine_a_annoter\Tests_march_18\data_bbox.yaml")
+START_INDEX = 0
 ANNOTATION_MODE = "obb"  # "bbox" or "obb"
 
 # ----------------------------------------
@@ -47,6 +49,72 @@ def load_classes_from_yaml(yaml_path):
 
 
 CLASSES = load_classes_from_yaml(DATA_YAML)
+
+def create_key_mapping_window(classes):
+    key_mapping = {}
+
+    root = tk.Tk()
+    root.title("Association touches / classes")
+    root.geometry("450x400")
+
+    entries = {}
+
+    tk.Label(
+        root,
+        text="Associer une touche à chaque classe",
+        font=("Arial", 14, "bold")
+    ).pack(pady=10)
+
+    frame = tk.Frame(root)
+    frame.pack(pady=10)
+
+    for class_id, class_name in classes.items():
+        row = tk.Frame(frame)
+        row.pack(fill="x", pady=4)
+
+        tk.Label(row, text=f"{class_id} - {class_name}", width=25, anchor="w").pack(side="left")
+
+        entry = tk.Entry(row, width=5)
+        entry.pack(side="left")
+        entries[class_id] = entry
+
+    def validate():
+        used_keys = set()
+
+        for class_id, entry in entries.items():
+            key = entry.get().strip().lower()
+
+            # Autoriser champ vide
+            if key == "":
+                continue
+
+            #Toujours refuser multi-char
+            if len(key) != 1:
+                messagebox.showerror("Erreur", "Chaque touche doit être un seul caractère.")
+                return
+
+            #Bloquer touches interdites
+            forbidden_keys = ['n', 'd','x', 'c', 'b', 'u', 's' ]
+            if key in forbidden_keys:
+                messagebox.showerror("Erreur", f"La touche '{key}' est interdite.")
+                return
+
+            #Empêcher doublons
+            if key in used_keys:
+                messagebox.showerror("Erreur", f"La touche '{key}' est utilisée plus d'une fois.")
+                return
+
+            used_keys.add(key)
+            key_mapping[ord(key)] = class_id
+
+        root.destroy()
+
+    tk.Button(root, text="Valider", command=validate).pack(pady=15)
+
+    root.mainloop()
+    return key_mapping
+
+KEY_TO_CLASS = create_key_mapping_window(CLASSES)
 
 # ---------- LABEL IO ----------
 def load_labels(label_path):
@@ -387,6 +455,10 @@ while idx < len(image_files):
             save_labels(str(label_path))
             idx += 1
             break
+        elif key == ord("b"):
+            save_labels(str(label_path))
+            idx = max(0, idx - 1)
+            break
         elif key == ord('c'):
             drawing = False
             click_points = []
@@ -400,9 +472,8 @@ while idx < len(image_files):
             delete_current_sample(str(img_path), str(label_path))
             image_files = sorted(IMAGE_DIR.glob(f"*{IMAGE_EXT}"))
             break
-        elif ord('0') <= key <= ord('9'):
-            cid = key - ord('0')
-            if cid in CLASSES:
-                current_class = cid
+
+        elif key in KEY_TO_CLASS:
+            current_class = KEY_TO_CLASS[key]
 
 cv2.destroyAllWindows()
