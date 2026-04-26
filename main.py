@@ -6,8 +6,8 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from ultralytics import YOLO
-#from scripts.Point_milieu import *
-from scripts.RealTime_Depth_and_angle import *
+# from scripts.Point_milieu import *
+from scripts.Depth_and_Angle.Detection_Orange import detect_orange_boxes, draw_orange_boxes
 
 
 # ---------------- CONFIG ----------------
@@ -22,7 +22,7 @@ PAUSE_KEY = ord('p')
 ESC_KEY = 27
 PREDICT_MODE = False
 MODEL_PATH = SCRIPT_DIR / "datasets/Tests_Datasets_Roboflow/Data_1/runs/detect/train3/weights/best.pt"
-#MODEL_PATH_IMG = SCRIPT_DIR / "datasets/Tests_Datasets_Roboflow/Data_1/valid/images"
+# MODEL_PATH_IMG = SCRIPT_DIR / "datasets/Tests_Datasets_Roboflow/Data_1/valid/images"
 MODEL_PATH_IMG = SCRIPT_DIR / "datasets/Test_Piscine_a_annoter/Tests_march_18/rgb"
 frames = []
 
@@ -67,7 +67,7 @@ if USE_CAMERA:
 
     inDepth = None
 
-# --------------Example usage--------------
+    # -------------- Example usage --------------
     with pipeline:
         pipeline.start()
 
@@ -79,25 +79,18 @@ if USE_CAMERA:
             if inDepth is not None:
                 depth_frame = inDepth.getFrame()
 
-
             # Si nécessaire, convertis en BGR pour affichage OpenCV
             if len(frame.shape) == 2:
                 frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
 
-            # Détection
+            # Détection orange
             boxes, mask = detect_orange_boxes(frame, depth_frame, min_area=900)
-
-            # Dessin des boîtes
             vis = draw_orange_boxes(frame, boxes)
 
             # Affichage
             cv2.imshow("rgb_orange_detection", vis)
             cv2.imshow("orange_mask", mask)
 
-            # Print console optionnel
-            if len(boxes) > 0:
-                biggest = max(boxes, key=lambda b: b["area"])
-                print(f"Detected box: cx={biggest['cx']}, cy={biggest['cy']}, area={biggest['area']:.1f}")
 
             key = cv2.waitKey(1)
             if key == PAUSE_KEY:
@@ -128,13 +121,16 @@ else:
 
         frames.append(frame)
 
-# ---------------Example usage--------------
+    # -------------- Example usage --------------
     for i, frame in enumerate(frames):
-        img_float = frame.copy().astype(np.float32)
         print(f"Frame {i} shape: {frame.shape}")
 
+        boxes, mask = detect_orange_boxes(frame, min_area=900)
+        vis = draw_orange_boxes(frame, boxes)
 
-# ---------------CALL FUNCTION--------------
+        cv2.imshow("rgb_orange_detection", vis)
+        cv2.imshow("orange_mask", mask)
+        cv2.waitKey(0)
 
 
 cv2.destroyAllWindows()

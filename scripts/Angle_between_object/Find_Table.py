@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 from pathlib import Path
-from scripts.Depth_and_Angle.Test_depth_and_angle import find_angle, find_depth
+from scripts.Depth_and_Angle.Depth_and_angle import find_angle, find_depth
 from Angle_between_object import find_angle_plane
 
 

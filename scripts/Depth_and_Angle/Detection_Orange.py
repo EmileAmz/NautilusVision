@@ -1,10 +1,10 @@
 import numpy as np
 import cv2
-from pathlib import Path
-from Test_depth_and_angle import find_angle, find_depth
+
+from scripts.Depth_and_Angle.Depth_and_angle import find_depth
 
 
-def detect_orange_boxes(img, min_area=900):
+def detect_orange_boxes(img, depth_frame, min_area=900):
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
     lower_orange = np.array([0, 80, 80])
@@ -19,114 +19,63 @@ def detect_orange_boxes(img, min_area=900):
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     boxes = []
+
     for cnt in contours:
         area = cv2.contourArea(cnt)
+
         if area < min_area:
             continue
 
         x, y, w, h = cv2.boundingRect(cnt)
+
         cx = x + w // 2
         cy = y + h // 2
 
-        boxes.append({
+        depth = find_depth(
+            depth_frame=depth_frame,
+            half=5,
+            cy_boundingbox=cy,
+            cx_boundingbox=cx,
+            kernel_size=5
+        )
+
+        box = {
             "x": x,
             "y": y,
             "w": w,
             "h": h,
             "cx": cx,
             "cy": cy,
-            "area": area
-        })
+            "area": area,
+            "depth": depth
+        }
+
+        boxes.append(box)
 
     return boxes, mask
 
 
-if __name__ == "__main__":
-    RGB_DIR = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\rgb")
-    DEPTH_DIR = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\depth")
-    OUTPUT_DIR = RGB_DIR.parent / "rgb_processed"
-    OUTPUT_DIR.mkdir(exist_ok=True)
+def draw_orange_boxes(frame, boxes):
+    output = frame.copy()
 
-    valid_exts = [".png", ".jpg", ".jpeg"]
-    results = []
+    for box in boxes:
+        x, y, w, h = box["x"], box["y"], box["w"], box["h"]
+        cx, cy = box["cx"], box["cy"]
 
-    for image_path in RGB_DIR.iterdir():
-        if image_path.suffix.lower() not in valid_exts:
-            continue
+        cv2.rectangle(output, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        cv2.circle(output, (cx, cy), 3, (0, 0, 255), -1)
 
-        print(f"\nProcessing: {image_path.name}")
+        depth = box["depth"]
+        label = f"{depth}mm"
 
-        rgb = cv2.imread(str(image_path))
-        if rgb is None:
-            print(f"Impossible de charger l'image RGB : {image_path}")
-            continue
+        cv2.putText(
+            output,
+            label,
+            (x, max(20, y - 10)),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.5,
+            (0, 255, 0),
+            1
+        )
 
-        h, w = rgb.shape[:2]
-
-        # Construire le chemin depth correspondant
-        depth_path = DEPTH_DIR / (image_path.stem + ".png")
-
-        try:
-            boxes, mask = detect_orange_boxes(rgb)
-
-            output = rgb.copy()
-
-            for i, box in enumerate(boxes):
-                depth = find_depth(
-                    depth_path=depth_path,
-                    kernel_size=5,
-                    half=5,
-                    box=box,
-                    image_width=w,
-                    image_height=h,
-                    use_filtered_depth=False
-                )
-
-                angle = find_angle(box, depth)
-
-                result = {
-                    "box_id": i,
-                    "x": box["x"],
-                    "y": box["y"],
-                    "w": box["w"],
-                    "h": box["h"],
-                    "cx": box["cx"],
-                    "cy": box["cy"],
-                    "depth": depth,
-                    "angle_deg": angle
-                }
-                results.append(result)
-
-                # Affichage seulement si depth valide
-                label = f"z={depth:.1f} yaw={angle:.1f} deg" if depth is not None and angle is not None else "depth invalide"
-
-                cv2.rectangle(
-                    output,
-                    (box["x"], box["y"]),
-                    (box["x"] + box["w"], box["y"] + box["h"]),
-                    (0, 255, 0),
-                    2
-                )
-                cv2.circle(output, (box["cx"], box["cy"]), 3, (0, 0, 255), -1)
-                cv2.putText(
-                    output,
-                    label,
-                    (box["x"], max(20, box["y"] - 10)),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.5,
-                    (0, 255, 0),
-                    2
-                )
-
-                print(
-                    f"Box {i} | centre=({box['cx']},{box['cy']}) | "
-                    f"profondeur={depth} | angle={angle}"
-                )
-
-            out_path = OUTPUT_DIR / image_path.name
-            cv2.imwrite(str(out_path), output)
-
-        except Exception as e:
-            print(f"Erreur avec {image_path.name}: {e}")
-
-    print("\nDone ✅")
+    return output
