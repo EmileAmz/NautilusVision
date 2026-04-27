@@ -273,6 +273,10 @@ def process_video(video_data, yield_preview=False):
     cap.release()
     new_video.release()
 
+def blue_filter(frame):
+
+    return
+
 
 if __name__ == "__main__":
     from pathlib import Path

@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from ultralytics import YOLO
 # from scripts.Point_milieu import *
 from scripts.Depth_and_Angle.Detection_Orange import detect_orange_boxes, draw_orange_boxes
+from scripts.Blue_filter_V2 import blue_filter
 
 
 # ---------------- CONFIG ----------------
@@ -83,6 +84,11 @@ if USE_CAMERA:
             if len(frame.shape) == 2:
                 frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
 
+            filtered_frame = blue_filter(frame)
+
+            cv2.imshow("filtered", filtered_frame)
+
+            """
             # Détection orange
             boxes, mask = detect_orange_boxes(frame, depth_frame, min_area=900)
             vis = draw_orange_boxes(frame, boxes)
@@ -90,6 +96,7 @@ if USE_CAMERA:
             # Affichage
             cv2.imshow("rgb_orange_detection", vis)
             cv2.imshow("orange_mask", mask)
+            """
 
 
             key = cv2.waitKey(1)
