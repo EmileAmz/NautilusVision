@@ -104,3 +104,27 @@ def find_angle(box, depth_mean):
     yaw_deg = np.degrees(yaw)
 
     return yaw_deg
+
+def global_median_ignore_zeros(img):
+    img = np.squeeze(img)
+
+    if img.ndim != 2:
+        raise ValueError(f"Image non 2D: {img.shape}")
+
+    h, w = img.shape
+
+    # Définir la zone autour du centre
+    x1 = max(0, int(cx - cx/2))
+    x2 = min(w, int(cx + cx/2))
+    y1 = max(0, int(cy - cy/2))
+    y2 = min(h, int(cy + cy/2))
+
+    patch = img[y1:y2, x1:x2]
+
+    # enlever les zéros
+    valid_values = patch[patch != 0]
+
+    if valid_values.size == 0:
+        return 0
+
+    return np.median(valid_values)
