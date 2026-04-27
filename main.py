@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from ultralytics import YOLO
 # from scripts.Point_milieu import *
 from scripts.Depth_and_Angle.Detection_Orange import detect_orange_boxes, draw_orange_boxes
+from scripts.Depth_and_Angle.Depth_and_angle import global_median_ignore_zeros
 
 
 # ---------------- CONFIG ----------------
@@ -82,6 +83,11 @@ if USE_CAMERA:
             # Si nécessaire, convertis en BGR pour affichage OpenCV
             if len(frame.shape) == 2:
                 frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
+
+            #Calcul mediane globale
+            lol = global_median_ignore_zeros(depth_frame)
+            print(lol)
+
 
             # Détection orange
             boxes, mask = detect_orange_boxes(frame, depth_frame, min_area=900)

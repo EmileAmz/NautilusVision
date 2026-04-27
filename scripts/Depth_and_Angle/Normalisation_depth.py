@@ -158,9 +158,23 @@ def filter_depth(depth_path, kernel_size):
 
     return depth_filtered
 
+def global_median_ignore_zeros(img):
+    img = np.squeeze(img)
+
+    if img.ndim != 2:
+        raise ValueError(f"Image non 2D: {img.shape}")
+
+    # garder seulement les valeurs non nulles
+    valid_values = img[img != 0]
+
+    if valid_values.size == 0:
+        return 0  # fallback si tout est zéro
+
+    return np.median(valid_values)
+
 if __name__ == "__main__":
     #depth_path = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\depth\1775152864.904.png")
-    depth_path = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\depth_mcgill\depth_20260404_145526.png")
+    depth_path = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\depth_prequalif\20260422_105233.png")
     depth_filtered = filter_depth(depth_path, 7)
 
     # ---------------- CLEAN ----------------
@@ -176,7 +190,22 @@ if __name__ == "__main__":
     # ---------------- PLOT ----------------
     plt.figure(figsize=(10, 6))
 
-    im = plt.imshow(depth_clipped, cmap="plasma", vmin=0, vmax=MAX_DEPTH)
+    # Créer un masque des zéros
+    mask_zero = (depth_clipped == 0)
+
+    # Mettre les zéros à NaN (matplotlib ne les affiche pas)
+    depth_display = depth_clipped.astype(np.float32)
+    depth_display[mask_zero] = np.nan
+
+    # Créer la colormap
+    cmap = plt.cm.plasma.copy()
+    cmap.set_bad(color='black')  # 🔥 les NaN deviennent noirs
+
+    median_value = global_median_ignore_zeros(depth_filtered)
+    print("Median (sans zéros):", median_value)
+
+    # Affichage
+    im = plt.imshow(depth_display, cmap=cmap, vmin=0, vmax=MAX_DEPTH)
 
     cbar = plt.colorbar(im)
     cbar.set_label("Profondeur (mm)")
@@ -186,6 +215,8 @@ if __name__ == "__main__":
 
     plt.tight_layout()
     plt.show()
+
+
     """
     plt.figure(figsize=(10, 6))
 
