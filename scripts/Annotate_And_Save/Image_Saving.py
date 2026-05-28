@@ -27,14 +27,23 @@ CAM = "CAM_AVANT"  # "CAM_DESSOUS" ou "CAM_AVANT"
 # PIPELINE CREATION
 # =========================
 pipeline = dai.Pipeline()
+platform = pipeline.getDefaultDevice().getPlatform()
+
+sync = pipeline.create(dai.node.Sync)
 
 # RGB camera
 camRgb = pipeline.create(dai.node.Camera).build(dai.CameraBoardSocket.CAM_A)
 cam_q_in = camRgb.inputControl.createInputQueue()
 
+
+if platform == dai.Platform.RVC4:
+    align = pipeline.create(dai.node.ImageAlign)
+
+
 camRgbOut = camRgb.requestOutput(
     size=(1280, 720),
     fps=FPS,
+    resizeMode=dai.ImgResizeMode.STRETCH,
     type=dai.ImgFrame.Type.NV12,
 )
 
@@ -70,6 +79,7 @@ if CAM == "CAM_AVANT":
 # RGB queue
 rgbQueue = camRgbOut.createOutputQueue(maxSize=4)
 
+
 # =========================
 # HELPER FUNCTIONS
 # =========================
@@ -83,6 +93,17 @@ def depth_to_colormap(depth_frame, max_depth_mm=5000):
     depth_vis = np.clip(depth_vis, 0, 255).astype(np.uint8)
 
     return cv2.applyColorMap(depth_vis, cv2.COLORMAP_PLASMA)
+
+
+def make_overlay(rgb_frame, depth_frame, alpha=0.45, max_depth_mm=5000):
+    depth_vis = depth_to_colormap(depth_frame, max_depth_mm=max_depth_mm)
+
+    if depth_vis.shape[:2] != rgb_frame.shape[:2]:
+        depth_vis = cv2.resize(depth_vis, (rgb_frame.shape[1], rgb_frame.shape[0]))
+
+    overlay = cv2.addWeighted(rgb_frame, 1 - alpha, depth_vis, alpha, 0)
+    return overlay, depth_vis
+
 
 # =========================
 # RUN DEVICE
@@ -104,19 +125,19 @@ with pipeline:
     print("ESC: Quit\n")
 
     ctrl = dai.CameraControl()
-    ctrl.setManualExposure(20000, 400)  # 20 ms, ISO 400
+    ctrl.setManualExposure(20000, 400)
     cam_q_in.send(ctrl)
 
     if CAM == "CAM_DESSOUS":
         ctrl.setManualFocus(120)
-
+        cam_q_in.send(ctrl)
 
     while pipeline.isRunning():
         inRgb = rgbQueue.get()
         if inRgb is None:
             continue
 
-        rgb_frame = inRgb.getCvFrame()  # BGR for OpenCV
+        rgb_frame = inRgb.getCvFrame()
         depth_frame = None
         center_depth = None
 
@@ -125,10 +146,13 @@ with pipeline:
             if inDepth is not None:
                 depth_frame = inDepth.getFrame()
 
-                # Depth visualization
-                depth_vis = depth_to_colormap(depth_frame, max_depth_mm=5000)
+                overlay, depth_vis = make_overlay(
+                    rgb_frame,
+                    depth_frame,
+                    alpha=0.45,
+                    max_depth_mm=5000
+                )
 
-                # Center pixel debug
                 h, w = rgb_frame.shape[:2]
                 cx = w // 2
                 cy = h // 2
@@ -137,7 +161,10 @@ with pipeline:
                     max(0, cy - 5):min(h, cy + 5),
                     max(0, cx - 5):min(w, cx + 5)
                 ]
-                valid_center = center_patch[(center_patch > 200) & (center_patch < 5000)]
+
+                valid_center = center_patch[
+                    (center_patch > 200) & (center_patch < 5000)
+                ]
 
                 if valid_center.size > 0:
                     center_depth = float(np.median(valid_center))
@@ -145,8 +172,10 @@ with pipeline:
                 else:
                     depth_text = "Center depth: invalid"
 
-                cv2.circle(rgb_frame, (cx, cy), 4, (0, 0, 255), -1)
-                cv2.circle(depth_vis, (cx, cy), 4, (0, 255, 0), -1)
+                # Même point sur les 3 images
+                cv2.circle(rgb_frame, (cx, cy), 5, (0, 0, 255), -1)
+                cv2.circle(depth_vis, (cx, cy), 5, (0, 255, 0), -1)
+                cv2.circle(overlay, (cx, cy), 5, (255, 255, 255), -1)
 
                 cv2.putText(
                     rgb_frame,
@@ -158,16 +187,16 @@ with pipeline:
                     2
                 )
 
+                print("rgb shape:", rgb_frame.shape, "depth shape:", depth_frame.shape)
+
                 cv2.imshow("Depth aligned to RGB", depth_vis)
+                cv2.imshow("Overlay RGB + Depth", overlay)
 
         cv2.imshow("RGB", rgb_frame)
 
         key = cv2.waitKey(1) & 0xFF
         timestamp = time.time()
 
-        # =========================
-        # MODE SWITCH
-        # =========================
         if key == ord('1'):
             mode = 1
             print("Mode: Periodic")
@@ -196,6 +225,9 @@ with pipeline:
                 print("dtype:", depth_frame.dtype)
                 print("min:", np.min(depth_frame))
                 print("max:", np.max(depth_frame))
+                print("depth shape:", depth_frame.shape)
+                print("rgb shape:", rgb_frame.shape)
+
                 if center_depth is not None:
                     print(f"center depth: {center_depth:.1f} mm")
                 else:
@@ -203,15 +235,12 @@ with pipeline:
             else:
                 print("Pas de depth disponible pour cette caméra")
 
-        elif key == 27:  # ESC
+        elif key == 27:
             cv2.destroyAllWindows()
             break
 
         filename = f"{timestamp:.3f}.png"
 
-        # =========================
-        # MODE 1: PERIODIC
-        # =========================
         if mode == 1:
             if timestamp - last_capture_time >= PERIODIC_INTERVAL:
                 cv2.imwrite(str(RGB_FOLDER / filename), rgb_frame)
@@ -222,11 +251,8 @@ with pipeline:
                 print("Saved periodic:", filename)
                 last_capture_time = timestamp
 
-        # =========================
-        # MODE 2: MANUAL
-        # =========================
         elif mode == 2:
-            if key == 32:  # SPACE
+            if key == 32:
                 cv2.imwrite(str(RGB_FOLDER / filename), rgb_frame)
 
                 if depth_frame is not None:
@@ -234,12 +260,11 @@ with pipeline:
 
                 print("Saved manual:", filename)
 
-        # =========================
-        # MODE 3: EVENT BASED
-        # =========================
         elif mode == 3:
             if depth_frame is not None:
-                valid_depth = depth_frame[(depth_frame > 200) & (depth_frame < 5000)]
+                valid_depth = depth_frame[
+                    (depth_frame > 200) & (depth_frame < 5000)
+                ]
 
                 if valid_depth.size > 0:
                     depth_mean = float(np.median(valid_depth))
@@ -252,12 +277,10 @@ with pipeline:
 
                     last_depth_mean = depth_mean
 
-        # =========================
-        # MODE 4: BURST
-        # =========================
         elif mode == 4:
-            if key == 32:  # SPACE
+            if key == 32:
                 print("Burst started")
+
                 for i in range(BURST_COUNT):
                     burst_time = time.time()
                     burst_filename = f"{burst_time:.3f}.png"

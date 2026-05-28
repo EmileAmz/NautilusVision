@@ -388,7 +388,7 @@ def delete_current_sample(img_path, label_path):
 # ---------- MAIN ----------
 image_files = sorted(IMAGE_DIR.glob(f"*{IMAGE_EXT}"))  # Path.glob returns Path objects
 
-# ✅ FULLSCREEN WINDOW
+# FULLSCREEN WINDOW
 cv2.namedWindow("Label Editor", cv2.WINDOW_NORMAL)
 cv2.setWindowProperty("Label Editor", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 cv2.setMouseCallback("Label Editor", mouse_cb)

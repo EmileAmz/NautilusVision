@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
 from scipy.ndimage import median_filter
+import matplotlib.image as mpimg
 
 def vertical_median_filter(img, ksize=5):
     pad = ksize // 2
@@ -113,7 +114,7 @@ def filter_depth(depth_path, kernel_size):
 # ---------------- CONFIG ----------------
 #depth_path = Path(r"C:\Users\Xavier Lefebvre\Documents\GitHub\NautilusVision\datasets\Test_Piscine_a_annoter\Tests_march_18\depth\1773859763.894.png")
 
-    FILTER_MODE = "2d"
+    FILTER_MODE = "none"
     # options: "none", "vertical", "horizontal", "2d"
 
     KERNEL_SIZE = kernel_size
@@ -159,44 +160,50 @@ def filter_depth(depth_path, kernel_size):
     return depth_filtered
 
 if __name__ == "__main__":
-    #depth_path = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\depth\1775152864.904.png")
-    depth_path = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\depth_mcgill\depth_20260404_145526.png")
+    # ---------------- PATHS ----------------
+    depth_path = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\depth\1779322415.056.png")
+    rgb_path = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\rgb\1779322415.056.png")
+
+    # ---------------- FILTER DEPTH ----------------
     depth_filtered = filter_depth(depth_path, 7)
 
     # ---------------- CLEAN ----------------
     depth_filtered = depth_filtered.astype(np.float32)
 
-    # Remplacer valeurs invalides (0) par NaN pour affichage
-    #depth_filtered[depth_filtered == 0] = np.nan
+    # Remplacer valeurs invalides par NaN si désiré
+    # depth_filtered[depth_filtered == 0] = np.nan
 
-    # ---------------- CLIP à 4000 mm ----------------
-    MAX_DEPTH = 5000  # mm (4 m)
+    # ---------------- CLIP ----------------
+    MAX_DEPTH = 4000
     depth_clipped = np.clip(depth_filtered, 0, MAX_DEPTH)
 
+    # ---------------- LOAD RGB ----------------
+    im_rgb = mpimg.imread(rgb_path)
+
     # ---------------- PLOT ----------------
-    plt.figure(figsize=(10, 6))
+    fig, ax = plt.subplots(1, 2, figsize=(14, 6))
 
-    im = plt.imshow(depth_clipped, cmap="plasma", vmin=0, vmax=MAX_DEPTH)
+    # ----- DEPTH -----
+    im = ax[0].imshow(
+        depth_clipped,
+        cmap="plasma",
+        vmin=0,
+        vmax=MAX_DEPTH
+    )
 
-    cbar = plt.colorbar(im)
+    ax[0].set_title("Depth")
+    ax[0].axis("off")
+
+    # Colorbar depth
+    cbar = fig.colorbar(im, ax=ax[0])
     cbar.set_label("Profondeur (mm)")
 
-    plt.title("Depth (clipped à 4m)")
-    plt.axis("off")
+    # ----- RGB -----
+    ax[1].imshow(im_rgb)
 
+    ax[1].set_title("RGB")
+    ax[1].axis("off")
+
+    # ---------------- SHOW ----------------
     plt.tight_layout()
     plt.show()
-    """
-    plt.figure(figsize=(10, 6))
-
-    im = plt.imshow(depth_filtered, cmap="plasma", vmin=vmin, vmax=vmax)
-    cbar = plt.colorbar(im)
-    cbar.set_label("Profondeur (raw corrigée)")
-
-    plt.title(f"Depth")
-    plt.axis("off")
-
-    plt.tight_layout()
-    plt.show()
-    """
-

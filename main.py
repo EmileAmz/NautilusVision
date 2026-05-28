@@ -9,6 +9,7 @@ from ultralytics import YOLO
 # from scripts.Point_milieu import *
 from scripts.Depth_and_Angle.Detection_Orange import detect_orange_boxes, draw_orange_boxes
 from scripts.Blue_filter_V2 import blue_filter
+import time
 
 
 # ---------------- CONFIG ----------------
@@ -28,6 +29,7 @@ MODEL_PATH_IMG = SCRIPT_DIR / "datasets/Test_Piscine_a_annoter/Tests_march_18/rg
 frames = []
 
 
+
 # ---------------- INPUT SOURCE ----------------
 if USE_CAMERA:
 
@@ -35,13 +37,18 @@ if USE_CAMERA:
 
     monoLeft = pipeline.create(dai.node.Camera).build(dai.CameraBoardSocket.CAM_B)
     monoRight = pipeline.create(dai.node.Camera).build(dai.CameraBoardSocket.CAM_C)
-    rgb = pipeline.create(dai.node.Camera).build(dai.CameraBoardSocket.CAM_A)
+
     stereo = pipeline.create(dai.node.StereoDepth)
+
+    rgb = pipeline.create(dai.node.Camera).build(dai.CameraBoardSocket.CAM_A)
+
+    rgb.initialControl.setAutoFocusMode(dai.CameraControl.AutoFocusMode.OFF)
+    rgb.initialControl.setManualFocus(130)
 
     rgbOut = rgb.requestOutput(
         size=(1280, 720),
         fps=15,
-        type=dai.ImgFrame.Type.RGB888i,
+        type=dai.ImgFrame.Type.BGR888i,
     )
 
     monoLeftOut = monoLeft.requestFullResolutionOutput()
@@ -66,11 +73,21 @@ if USE_CAMERA:
     dispQueue = stereo.disparity.createOutputQueue()
     depthQueue = stereo.depth.createOutputQueue(maxSize=4)
 
+    imu = pipeline.create(dai.node.IMU)
+
+    imu.enableIMUSensor(dai.IMUSensor.ACCELEROMETER_RAW, 100)
+    imu.enableIMUSensor(dai.IMUSensor.GYROSCOPE_RAW, 100)
+    imu.setBatchReportThreshold(1)
+    imu.setMaxBatchReports(10)
+
+    imuQueue = imu.out.createOutputQueue(maxSize=50, blocking=False)
+
     inDepth = None
 
     # -------------- Example usage --------------
     with pipeline:
         pipeline.start()
+        last_imu_print = 0
 
         while pipeline.isRunning():
             inRgb = rgbQueue.get()
@@ -84,10 +101,23 @@ if USE_CAMERA:
             if len(frame.shape) == 2:
                 frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
 
-            filtered_frame = blue_filter(frame)
+            #filtered_frame = blue_filter(frame)
 
-            cv2.imshow("filtered", filtered_frame)
+            cv2.imshow("filtered", frame)
+            imuData = imuQueue.tryGet()
+            now = time.time()
 
+            if imuData is not None and now - last_imu_print > 0.2:
+                last_imu_print = now
+
+                for packet in imuData.packets[-1:]:
+                    accel = packet.acceleroMeter
+                    gyro = packet.gyroscope
+
+                    print(
+                        f"ACCEL [m/s²] x={accel.x:.3f}, y={accel.y:.3f}, z={accel.z:.3f} | "
+                        f"GYRO [rad/s] x={gyro.x:.3f}, y={gyro.y:.3f}, z={gyro.z:.3f}"
+                    )
             """
             # Détection orange
             boxes, mask = detect_orange_boxes(frame, depth_frame, min_area=900)
@@ -97,8 +127,6 @@ if USE_CAMERA:
             cv2.imshow("rgb_orange_detection", vis)
             cv2.imshow("orange_mask", mask)
             """
-
-
             key = cv2.waitKey(1)
             if key == PAUSE_KEY:
                 cv2.waitKey(0)
