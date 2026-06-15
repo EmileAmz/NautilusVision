@@ -10,8 +10,8 @@ from tkinter import messagebox
 # ---------------- CONFIG ----------------
 SCRIPT_DIR = Path(__file__).parent.resolve()
 REPO_ROOT = SCRIPT_DIR.parent.parent
-IMAGE_DIR = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\PHOTO_14AVRIL\rgb_oakd_14avril")
-LABEL_DIR = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\PHOTO_14AVRIL\label bbox")
+IMAGE_DIR = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\slalom")
+LABEL_DIR = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\slalom_labels")
 DEPTH_DIR = REPO_ROOT / "datasets/Test_Piscine_a_annoter/Tests_march_18/depth"
 IMAGE_EXT = ".jpg"
 DATA_YAML = Path(r"C:\Users\Xavier Lefebvre\Documents\GitHub\NautilusVision\datasets\Test_Piscine_a_annoter\Tests_march_18\data_bbox.yaml")
