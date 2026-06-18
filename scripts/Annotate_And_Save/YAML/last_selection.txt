@@ -1,0 +1,11 @@
+{
+    "dataset_dir": "C:\\Users\\Xavier Lefebvre\\Documents\\dataset\\Photo_Guillaueme\\rgb-oakd",
+    "yaml_name": "data_obb.yaml",
+    "mode": "bbox",
+    "start_index": 60,
+    "keys": {
+        "0": "1",
+        "1": "2",
+        "2": "3"
+    }
+}
