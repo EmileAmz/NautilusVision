@@ -2,12 +2,12 @@ import os
 import cv2
 
 # ====== CHANGE THESE ======
-INPUT_IMAGE_DIR = "C:/Users/eaime/Documents/S7GRO/Nautilus images sim/captured_images"
-OUTPUT_IMAGE_DIR = "C:/Users/eaime/Documents/S7GRO/Nautilus images sim split/320p/Total/images"
+INPUT_IMAGE_DIR = "/home/nautilus/GithubVision/Datasets/Ready_to_train/Total/images_filtered"
+OUTPUT_IMAGE_DIR = "/home/nautilus/GithubVision/Datasets/Ready_to_train/Total/images_filtered_resolution_75"
 
 # Optional: copy labels as-is
-INPUT_LABEL_DIR = "C:/Users/eaime/Documents/S7GRO/Nautilus images sim/captured_labels"
-OUTPUT_LABEL_DIR = "C:/Users/eaime/Documents/S7GRO/Nautilus images sim split/320p/Total/labels"
+INPUT_LABEL_DIR = "/home/nautilus/GithubVision/Datasets/Ready_to_train/Total/labels_filtered"
+OUTPUT_LABEL_DIR = "/home/nautilus/GithubVision/Datasets/Ready_to_train/Total/labels_filtered_resolution_75"
 # ==========================
 
 os.makedirs(OUTPUT_IMAGE_DIR, exist_ok=True)
@@ -24,7 +24,12 @@ for filename in os.listdir(INPUT_IMAGE_DIR):
             continue
 
         h, w = img.shape[:2]
-        resized = cv2.resize(img, (w // 2, h // 2), interpolation=cv2.INTER_AREA)
+        scale = 0.75
+        resized = cv2.resize(
+            img,
+            (int(w * scale), int(h * scale)),
+            interpolation=cv2.INTER_AREA
+        )
 
         out_path = os.path.join(OUTPUT_IMAGE_DIR, filename)
         cv2.imwrite(out_path, resized)

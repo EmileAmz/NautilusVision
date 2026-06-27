@@ -4,11 +4,11 @@ import shutil
 from pathlib import Path
 
 # -------- CONFIG --------
-IMAGE_DIR = Path("C:/Users/eaime/Documents/S7GRO/Nautilus images sim split/320p/Total/images")
-LABEL_DIR = Path("C:/Users/eaime/Documents/S7GRO/Nautilus images sim split/320p/Total/labels")
-DATA_YAML = Path("C:/Users/eaime/Documents/S7GRO/Nautilus images sim split/320p/Total/data.yaml")
+IMAGE_DIR = Path("/home/nautilus/GithubVision/Datasets/Ready_to_train/Total/images_filtered_resolution_75")
+LABEL_DIR = Path("/home/nautilus/GithubVision/Datasets/Ready_to_train/Total/labels_filtered_resolution_75")
+DATA_YAML = Path("/home/nautilus/GithubVision/Datasets/Ready_to_train/Total/data.yaml")
 
-OUTPUT_DIR = Path("C:/Users/eaime/Documents/S7GRO/Nautilus images sim split/320p")
+OUTPUT_DIR = Path("/home/nautilus/GithubVision/Datasets/Ready_to_train/Split")
 
 SPLIT_RATIO = (0.7, 0.15, 0.15)  # train, val, test
 SEED = 42
