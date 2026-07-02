@@ -1,11 +1,15 @@
 {
-    "dataset_dir": "C:\\Users\\Xavier Lefebvre\\Documents\\dataset\\Photo_Guillaueme\\rgb-oakd",
-    "yaml_name": "data_obb.yaml",
+    "dataset_dir": "C:\\Users\\Xavier Lefebvre\\Documents\\dataset\\rbg_forward",
+    "yaml_name": "data_bbox.yaml",
     "mode": "bbox",
-    "start_index": 60,
+    "start_index": 0,
     "keys": {
-        "0": "1",
-        "1": "2",
-        "2": "3"
+        "5": "7",
+        "7": "4",
+        "8": "3",
+        "13": "6",
+        "17": "1",
+        "18": "2",
+        "19": "5"
     }
 }

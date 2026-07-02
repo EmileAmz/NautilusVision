@@ -2,8 +2,8 @@ train: ../train/images
 val: ../val/images
 test: ../test/images
 
-nc: 17
-names: ['gate_leg_l','gate_mid', 'gate_leg_r', 'sos_safety', 'compass_hammer', 'slalom_side', 'slalom_center', 'fire','blood','sos','safety','compass','hammer','torpedo','gate','dropper','table']
+nc: 21
+names: ['gate_leg_l','gate_mid', 'gate_leg_r', 'sos_safety', 'compass_hammer', 'slalom_side', 'slalom_center', 'fire','blood','sos','safety','compass','hammer','torpedo','gate','dropper','table', 'fire_truk', 'ambulance', 'target']
 
 
 #roboflow:

@@ -3,7 +3,7 @@
 #test: ../test/images
 
 nc: 15
-names: ['gate_motherfucker','gate_mid', 'gate_leg_r', 'sos_safety', 'compass_hammer', 'slalom_side', 'slalom_center', 'fire','blood','sos','safety','compass','hammer','torpedo','gate']
+names: ['gate_leg_l','gate_mid', 'gate_leg_r', 'sos_safety', 'compass_hammer', 'slalom_side', 'slalom_center', 'fire','blood','sos','safety','compass','hammer','torpedo','gate']
 
 
 #roboflow:

@@ -676,6 +676,9 @@ if __name__ == "__main__":
             cv2.imshow("Label Editor", disp)
             key = cv2.waitKey(20) & 0xFF
 
+            if key != 255:
+                print(f"KEY = {key} ({chr(key) if 32 <= key <= 126 else 'special'})")
+
             if key == 27:
                 cv2.destroyAllWindows()
                 exit()
@@ -705,7 +708,7 @@ if __name__ == "__main__":
 
             elif key == ord("u") and labels:
                 labels.pop()
-            
+
 
             elif key in KEY_TO_CLASS:
                 current_class = KEY_TO_CLASS[key]

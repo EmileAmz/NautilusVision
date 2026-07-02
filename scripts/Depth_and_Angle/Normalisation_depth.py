@@ -113,7 +113,7 @@ def filter_depth(depth_path, kernel_size):
 # ---------------- CONFIG ----------------
 #depth_path = Path(r"C:\Users\Xavier Lefebvre\Documents\GitHub\NautilusVision\datasets\Test_Piscine_a_annoter\Tests_march_18\depth\1773859763.894.png")
 
-    FILTER_MODE = "2d"
+    FILTER_MODE = "none"
     # options: "none", "vertical", "horizontal", "2d"
 
     KERNEL_SIZE = kernel_size
@@ -174,7 +174,7 @@ def global_median_ignore_zeros(img):
 
 if __name__ == "__main__":
     #depth_path = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\depth\1775152864.904.png")
-    depth_path = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\depth_prequalif\20260422_105233.png")
+    depth_path = Path(r"C:\Users\Xavier Lefebvre\Downloads\20260616_225623.png")
     depth_filtered = filter_depth(depth_path, 7)
 
     # ---------------- CLEAN ----------------
