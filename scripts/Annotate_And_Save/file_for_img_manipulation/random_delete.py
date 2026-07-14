@@ -7,9 +7,9 @@ from pathlib import Path
 # CONFIGURATION
 # =====================================================
 
-FOLDER = Path(r"C:\Users\Xavier Lefebvre\Downloads\30 juin-20260702T013939Z-3-001\30 juin")  # <-- Modifier ce chemin
+FOLDER = Path(r"C:\Users\Xavier Lefebvre\Documents\dataset\13_juillet")  # <-- Modifier ce chemin
 
-KEEP_RATIO = 0.65
+KEEP_RATIO = 0.95
 
 IMAGE_EXTENSIONS = {
     ".jpg",
